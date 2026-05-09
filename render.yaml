@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: cnu-futsal-server
+    runtime: node
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: KAKAO_REST_API_KEY
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_BASE64
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+    plan: free
