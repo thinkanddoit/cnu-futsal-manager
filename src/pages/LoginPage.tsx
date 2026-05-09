@@ -16,6 +16,12 @@ export default function LoginPage() {
     }
   }, [appUser, navigate])
 
+  // Render.com 무료 플랜 cold start 방지 — 페이지 진입 시 서버 미리 깨움
+  useEffect(() => {
+    const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001'
+    fetch(`${serverUrl}/health`).catch(() => {})
+  }, [])
+
   useEffect(() => {
     const code = searchParams.get('code')
     if (!code) return
