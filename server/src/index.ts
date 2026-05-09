@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import { kakaoAuthRouter } from './kakaoAuth'
+import { tallyStatsRouter } from './tallyStats'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -18,6 +19,7 @@ app.use(cors({
 }))
 app.use(express.json())
 app.use('/auth', kakaoAuthRouter)
+app.use('/stats', tallyStatsRouter)
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
