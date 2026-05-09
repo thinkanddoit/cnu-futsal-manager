@@ -13,7 +13,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (appUser) {
-      navigate(appUser.role === 'pending' ? '/pending' : '/', { replace: true })
+      if (!appUser.nameConfirmed) {
+        navigate('/register', { replace: true })
+      } else {
+        navigate(appUser.role === 'pending' ? '/pending' : '/', { replace: true })
+      }
     }
   }, [appUser, navigate])
 
