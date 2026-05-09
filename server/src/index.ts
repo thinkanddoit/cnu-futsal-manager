@@ -18,6 +18,7 @@ app.use(cors({
   },
 }))
 app.use(express.json())
+app.get('/health', (_req, res) => res.json({ ok: true }))
 app.use('/auth', kakaoAuthRouter)
 app.use('/stats', tallyStatsRouter)
 
