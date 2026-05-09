@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isMember() {
+      return isAuth() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['member', 'admin'];
+    }
+
+    function isAdmin() {
+      return isAuth() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /users/{uid} {
+      allow read: if isAuth();
+      allow write: if isAdmin() || request.auth.uid == uid;
+    }
+
+    match /matches/{matchId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /attendances/{docId} {
+      allow read: if true;
+      allow write: if isMember() &&
+        request.auth.uid == resource.data.userId ||
+        isAdmin();
+      allow create: if isMember() &&
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /mvpVotes/{docId} {
+      allow read: if isMember();
+      allow create: if isMember() &&
+        request.auth.uid == request.resource.data.voterId &&
+        request.auth.uid != request.resource.data.votedFor;
+      allow update, delete: if false;
+    }
+
+    match /userStats/{uid} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
