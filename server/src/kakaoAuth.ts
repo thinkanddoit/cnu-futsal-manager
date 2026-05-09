@@ -6,6 +6,7 @@ const KAKAO_REST_API_KEY = process.env.KAKAO_REST_API_KEY
 if (!KAKAO_REST_API_KEY) {
   throw new Error('KAKAO_REST_API_KEY environment variable is required')
 }
+const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET
 
 const router = Router()
 
@@ -54,6 +55,7 @@ router.post('/kakao', async (req, res) => {
         client_id: KAKAO_REST_API_KEY,
         redirect_uri: redirectUri,
         code,
+        ...(KAKAO_CLIENT_SECRET && { client_secret: KAKAO_CLIENT_SECRET }),
       }).toString(),
     })
     const tokenData = (await tokenRes.json()) as KakaoTokenResponse
