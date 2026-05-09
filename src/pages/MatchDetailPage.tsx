@@ -73,6 +73,21 @@ export default function MatchDetailPage() {
     setMyVote(votedFor)
   }
 
+  function handleKakaoShare() {
+    const attendingNames = attending
+      .map((a) => memberMap[a.userId]?.name ?? '알 수 없음')
+      .join(', ')
+
+    window.Kakao.Share.sendDefault({
+      objectType: 'text',
+      text: `⚽ CNU 풋살 경기 안내\n\n📅 ${match!.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}\n📍 ${match!.venue}\n👥 참석 (${attending.length}명): ${attendingNames}`,
+      link: {
+        mobileWebUrl: window.location.href,
+        webUrl: window.location.href,
+      },
+    })
+  }
+
   const memberMap = Object.fromEntries(members.map((m) => [m.uid, m]))
 
   return (
@@ -99,6 +114,13 @@ export default function MatchDetailPage() {
           {myAttendance?.status === 'attending' ? '불참으로 변경' : '참석 신청'}
         </button>
       )}
+
+      <button
+        onClick={handleKakaoShare}
+        className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-lg"
+      >
+        카카오톡으로 참석자 공유
+      </button>
 
       <div>
         <h2 className="font-semibold mb-2">참석자 ({attending.length}명)</h2>

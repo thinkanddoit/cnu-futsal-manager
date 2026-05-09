@@ -1,7 +1,19 @@
 import { signInWithCustomToken, signOut as firebaseSignOut } from 'firebase/auth'
 import { auth } from '../firebase'
 
+declare global {
+  interface Window {
+    Kakao: any
+  }
+}
+
 const KAKAO_AUTH_URL = 'https://kauth.kakao.com/oauth/authorize'
+
+export function initKakaoSdk() {
+  if (window.Kakao && !window.Kakao.isInitialized()) {
+    window.Kakao.init(import.meta.env.VITE_KAKAO_JS_KEY)
+  }
+}
 
 export function redirectToKakaoLogin() {
   const params = new URLSearchParams({
