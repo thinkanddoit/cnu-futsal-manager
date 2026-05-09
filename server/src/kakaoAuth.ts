@@ -58,7 +58,8 @@ router.post('/kakao', async (req, res) => {
     })
     const tokenData = (await tokenRes.json()) as KakaoTokenResponse
     if (!tokenData.access_token) {
-      res.status(401).json({ error: 'Failed to get Kakao access token' })
+      console.error('Kakao token error:', JSON.stringify(tokenData))
+      res.status(401).json({ error: 'Failed to get Kakao access token', detail: tokenData })
       return
     }
 
