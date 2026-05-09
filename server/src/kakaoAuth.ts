@@ -2,6 +2,11 @@ import { Router } from 'express'
 import * as admin from 'firebase-admin'
 import fetch from 'node-fetch'
 
+const KAKAO_REST_API_KEY = process.env.KAKAO_REST_API_KEY
+if (!KAKAO_REST_API_KEY) {
+  throw new Error('KAKAO_REST_API_KEY environment variable is required')
+}
+
 const router = Router()
 
 // Initialize Firebase Admin once
@@ -46,7 +51,7 @@ router.post('/kakao', async (req, res) => {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
-        client_id: process.env.KAKAO_REST_API_KEY!,
+        client_id: KAKAO_REST_API_KEY,
         redirect_uri: redirectUri,
         code,
       }).toString(),
@@ -61,6 +66,10 @@ router.post('/kakao', async (req, res) => {
     const userRes = await fetch('https://kapi.kakao.com/v2/user/me', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     })
+    if (!userRes.ok) {
+      res.status(401).json({ error: 'Failed to get Kakao user info' })
+      return
+    }
     const userData = (await userRes.json()) as KakaoUserInfo
 
     const kakaoId = String(userData.id)
