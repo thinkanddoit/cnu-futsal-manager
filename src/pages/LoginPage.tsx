@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { redirectToKakaoLogin, loginWithKakaoCode } from '../services/auth'
 import { useAuth } from '../hooks/useAuth'
@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const { appUser } = useAuth()
+  const loginAttempted = useRef(false)
 
   useEffect(() => {
     if (appUser) {
@@ -24,8 +25,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     const code = searchParams.get('code')
-    if (!code) return
+    if (!code || loginAttempted.current) return
 
+    loginAttempted.current = true
     setLoading(true)
     loginWithKakaoCode(code)
       .catch(() => setError('로그인에 실패했습니다. 다시 시도해주세요.'))
