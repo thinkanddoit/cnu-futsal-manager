@@ -11,6 +11,7 @@ import MyPage from './pages/MyPage'
 import AdminHomePage from './pages/admin/AdminHomePage'
 import AdminMatchesPage from './pages/admin/AdminMatchesPage'
 import AdminMembersPage from './pages/admin/AdminMembersPage'
+import RegisterPage from './pages/RegisterPage'
 
 export const router = createBrowserRouter([
   {
@@ -21,6 +22,7 @@ export const router = createBrowserRouter([
       { path: '/rankings', element: <RankingsPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/pending', element: <PendingPage /> },
+      { path: '/register', element: <RegisterPage /> },
       {
         path: '/match/:id',
         element: <ProtectedRoute><MatchDetailPage /></ProtectedRoute>,

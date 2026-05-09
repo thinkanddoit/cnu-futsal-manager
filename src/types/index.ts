@@ -7,6 +7,7 @@ export interface AppUser {
   profileImage: string
   role: UserRole
   createdAt: Date
+  nameConfirmed: boolean
 }
 
 export type MatchStatus = 'voting' | 'confirmed' | 'cancelled' | 'completed'

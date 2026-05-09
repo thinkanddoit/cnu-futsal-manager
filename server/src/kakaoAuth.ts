@@ -91,6 +91,7 @@ router.post('/kakao', async (req, res) => {
         kakaoId,
         profileImage,
         role: 'pending',
+        nameConfirmed: false,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       })
       uid = newUserRef.id

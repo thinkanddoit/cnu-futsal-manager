@@ -18,6 +18,7 @@ function docToUser(id: string, data: Record<string, any>): AppUser {
     profileImage: data.profileImage,
     role: data.role as UserRole,
     createdAt: data.createdAt?.toDate() ?? new Date(),
+    nameConfirmed: data.nameConfirmed ?? false,
   }
 }
 
@@ -43,4 +44,8 @@ export async function approveUser(uid: string): Promise<void> {
 
 export async function setUserRole(uid: string, role: UserRole): Promise<void> {
   await updateDoc(doc(db, 'users', uid), { role })
+}
+
+export async function updateUserName(uid: string, name: string): Promise<void> {
+  await updateDoc(doc(db, 'users', uid), { name, nameConfirmed: true })
 }
