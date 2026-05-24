@@ -17,6 +17,7 @@ function docToMatch(id: string, data: Record<string, any>): Match {
   return {
     id,
     date: data.date?.toDate() ?? new Date(),
+    time: data.time ?? '',
     venue: data.venue,
     status: data.status as MatchStatus,
     confirmedAt: data.confirmedAt?.toDate() ?? null,
@@ -50,18 +51,22 @@ export async function getMatchesByMonth(year: number, month: number): Promise<Ma
 
 export async function createMatch(
   date: Date,
+  time: string,
   venue: string,
-  createdBy: string
-): Promise<void> {
-  await addDoc(collection(db, 'matches'), {
+  createdBy: string,
+  status: MatchStatus = 'voting'
+): Promise<string> {
+  const ref = await addDoc(collection(db, 'matches'), {
     date: Timestamp.fromDate(date),
+    time,
     venue,
-    status: 'voting',
-    confirmedAt: null,
+    status,
+    confirmedAt: status === 'confirmed' ? Timestamp.now() : null,
     voteDeadline: null,
     voteTallied: false,
     createdBy,
   })
+  return ref.id
 }
 
 export async function updateMatchStatus(
