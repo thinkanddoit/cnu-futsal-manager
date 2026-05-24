@@ -15,6 +15,7 @@ export type MatchStatus = 'voting' | 'confirmed' | 'cancelled' | 'completed'
 export interface Match {
   id: string
   date: Date
+  time: string        // "HH:MM" 형식
   venue: string
   status: MatchStatus
   confirmedAt: Date | null
@@ -27,9 +28,18 @@ export type AttendanceStatus = 'attending' | 'absent'
 
 export interface Attendance {
   matchId: string
-  userId: string
+  userId: string | null   // 비회원은 null
+  guestName?: string      // 비회원 이름
   status: AttendanceStatus
   updatedAt: Date
+}
+
+export interface MvpResult {
+  matchId: string
+  first: string[]    // uid 또는 guestName 배열
+  second: string[]
+  third: string[]    // 빈 배열 허용
+  createdAt: Date
 }
 
 export interface MvpVote {
