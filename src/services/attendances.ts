@@ -1,6 +1,7 @@
 import {
   doc,
   setDoc,
+  addDoc,
   getDocs,
   collection,
   query,
@@ -58,4 +59,31 @@ export async function getUserAttendances(userId: string): Promise<Attendance[]> 
   const q = query(collection(db, 'attendances'), where('userId', '==', userId))
   const snap = await getDocs(q)
   return snap.docs.map((d) => docToAttendance(d.data()))
+}
+
+export interface AttendeeInput {
+  userId: string | null
+  guestName?: string
+}
+
+export async function saveMatchAttendances(
+  matchId: string,
+  attendees: AttendeeInput[]
+): Promise<void> {
+  const writes = attendees.map((a) => {
+    const docData: Record<string, any> = {
+      matchId,
+      userId: a.userId,
+      status: 'attending' as AttendanceStatus,
+      updatedAt: Timestamp.now(),
+    }
+    if (a.guestName) docData.guestName = a.guestName
+
+    if (a.userId) {
+      return setDoc(doc(db, 'attendances', attendanceId(matchId, a.userId)), docData)
+    } else {
+      return addDoc(collection(db, 'attendances'), docData)
+    }
+  })
+  await Promise.all(writes)
 }
