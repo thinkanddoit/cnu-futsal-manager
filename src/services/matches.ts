@@ -3,6 +3,7 @@ import {
   doc,
   addDoc,
   updateDoc,
+  deleteDoc,
   getDocs,
   onSnapshot,
   query,
@@ -17,19 +18,21 @@ function docToMatch(id: string, data: Record<string, any>): Match {
   return {
     id,
     date: data.date?.toDate() ?? new Date(),
+    time: data.time ?? '',
     venue: data.venue,
     status: data.status as MatchStatus,
     confirmedAt: data.confirmedAt?.toDate() ?? null,
     voteDeadline: data.voteDeadline?.toDate() ?? null,
     voteTallied: data.voteTallied ?? false,
     createdBy: data.createdBy,
+
   }
 }
 
 export function subscribeToMatches(
   onData: (matches: Match[]) => void
 ): () => void {
-  const q = query(collection(db, 'matches'), orderBy('date'))
+  const q = query(collection(db, 'matches'), orderBy('date', 'desc'))
   return onSnapshot(q, (snap) => {
     onData(snap.docs.map((d) => docToMatch(d.id, d.data())))
   })
@@ -48,20 +51,30 @@ export async function getMatchesByMonth(year: number, month: number): Promise<Ma
   return snap.docs.map((d) => docToMatch(d.id, d.data()))
 }
 
+export async function getAllMatches(): Promise<Match[]> {
+  const q = query(collection(db, 'matches'), orderBy('date', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => docToMatch(d.id, d.data()))
+}
+
 export async function createMatch(
   date: Date,
+  time: string,
   venue: string,
-  createdBy: string
-): Promise<void> {
-  await addDoc(collection(db, 'matches'), {
+  createdBy: string,
+  status: MatchStatus = 'voting'
+): Promise<string> {
+  const ref = await addDoc(collection(db, 'matches'), {
     date: Timestamp.fromDate(date),
+    time,
     venue,
-    status: 'voting',
-    confirmedAt: null,
+    status,
+    confirmedAt: status === 'confirmed' ? Timestamp.now() : null,
     voteDeadline: null,
     voteTallied: false,
     createdBy,
   })
+  return ref.id
 }
 
 export async function updateMatchStatus(
@@ -82,6 +95,25 @@ export async function updateMatchStatus(
   }
 
   await updateDoc(doc(db, 'matches', matchId), updates)
+}
+
+export async function deleteMatch(matchId: string): Promise<void> {
+  const attendSnap = await getDocs(
+    query(collection(db, 'attendances'), where('matchId', '==', matchId))
+  )
+  await Promise.all(attendSnap.docs.map((d) => deleteDoc(d.ref)))
+  await deleteDoc(doc(db, 'matches', matchId))
+}
+
+export async function autoCompleteMatches(): Promise<void> {
+  const now = new Date()
+  const q = query(collection(db, 'matches'), where('status', '==', 'confirmed'))
+  const snap = await getDocs(q)
+  const toComplete = snap.docs.filter((d) => {
+    const match = docToMatch(d.id, d.data())
+    return new Date(match.date.getTime() + 2 * 60 * 60 * 1000) < now
+  })
+  await Promise.all(toComplete.map((d) => updateMatchStatus(d.id, 'completed')))
 }
 
 export function getNextMonthMondays(): Date[] {

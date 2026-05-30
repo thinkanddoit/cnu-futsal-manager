@@ -12,9 +12,9 @@ export function Header() {
   }
 
   return (
-    <header className="bg-blue-600 text-white shadow-md">
+    <header className="bg-white dark:bg-gray-900 text-blue-900 dark:text-white border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="text-lg font-bold">CNU 풋살</Link>
+        <Link to="/" className="text-lg font-bold tracking-widest text-red-600 dark:text-amber-400">CNU</Link>
         <nav className="flex items-center gap-4 text-sm">
           <Link to="/schedule">경기 일정</Link>
           <Link to="/rankings">랭킹</Link>

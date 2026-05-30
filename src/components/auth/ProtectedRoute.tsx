@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { UserRole } from '../../types'
+import { LoadingSpinner } from '../ui/LoadingSpinner'
 
 interface Props {
   children: React.ReactNode
@@ -10,7 +11,7 @@ interface Props {
 export function ProtectedRoute({ children, requiredRole }: Props) {
   const { appUser, loading } = useAuth()
 
-  if (loading) return <div className="flex justify-center p-8">로딩 중...</div>
+  if (loading) return <LoadingSpinner />
 
   if (!appUser) return <Navigate to="/login" replace />
 

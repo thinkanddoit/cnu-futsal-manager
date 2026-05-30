@@ -1,17 +1,21 @@
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../hooks/useAuth'
 import { subscribeToMatchAttendances, setAttendance } from '../services/attendances'
-import { castMvpVote, getMyVote } from '../services/votes'
-import { getAllMembers } from '../services/users'
-import { Match, Attendance, AppUser } from '../types'
+import { castMomVote, getMyVote } from '../services/votes'
+import { getMomResult } from '../services/momResults'
+import { getAllUsers } from '../services/users'
+import { setMatchPhoto, getMatchPhoto } from '../services/photos'
+import { Match, Attendance, AppUser, MomResult, MatchPhoto } from '../types'
+import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 
 function docToMatch(id: string, data: Record<string, any>): Match {
   return {
     id,
     date: data.date?.toDate() ?? new Date(),
+    time: data.time ?? '',
     venue: data.venue,
     status: data.status,
     confirmedAt: data.confirmedAt?.toDate() ?? null,
@@ -24,11 +28,17 @@ function docToMatch(id: string, data: Record<string, any>): Match {
 export default function MatchDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { appUser } = useAuth()
+  const navigate = useNavigate()
   const [match, setMatch] = useState<Match | null>(null)
   const [attendances, setAttendances] = useState<Attendance[]>([])
   const [members, setMembers] = useState<AppUser[]>([])
   const [myVote, setMyVote] = useState<string | null>(null)
+  const [momResult, setMomResult] = useState<MomResult | null>(null)
+  const [photo, setPhoto] = useState<MatchPhoto | null>(null)
+  const [lightbox, setLightbox] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(true)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!id) return
@@ -36,7 +46,9 @@ export default function MatchDetailPage() {
       if (snap.exists()) setMatch(docToMatch(snap.id, snap.data()))
       setLoading(false)
     })
-    getAllMembers().then(setMembers)
+    getAllUsers().then(setMembers)
+    getMomResult(id).then(setMomResult)
+    getMatchPhoto(id).then(setPhoto)
   }, [id])
 
   useEffect(() => {
@@ -49,17 +61,20 @@ export default function MatchDetailPage() {
     getMyVote(id, appUser.uid).then((v) => setMyVote(v?.votedFor ?? null))
   }, [id, appUser])
 
-  if (loading) return <p className="text-center p-8">로딩 중...</p>
+  if (loading) return <LoadingSpinner />
   if (!match) return <p className="text-center p-8">경기를 찾을 수 없습니다.</p>
 
   const attending = attendances.filter((a) => a.status === 'attending')
   const myAttendance = attendances.find((a) => a.userId === appUser?.uid)
   const canChangeAttendance = match.status === 'voting'
+  const isCompleted = match.status === 'completed'
+  const isAttending = attending.some((a) => a.userId === appUser?.uid)
   const isVotingOpen =
     match.status === 'completed' &&
     !match.voteTallied &&
     match.voteDeadline &&
-    match.voteDeadline > new Date()
+    match.voteDeadline > new Date() &&
+    isAttending
 
   async function handleAttendanceToggle() {
     if (!appUser || !id) return
@@ -69,84 +84,210 @@ export default function MatchDetailPage() {
 
   async function handleVote(votedFor: string) {
     if (!appUser || !id) return
-    await castMvpVote(id, appUser.uid, votedFor)
+    await castMomVote(id, appUser.uid, votedFor)
     setMyVote(votedFor)
+  }
+
+  async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!appUser || !id || !e.target.files?.length) return
+    setUploading(true)
+    try {
+      const newPhoto = await setMatchPhoto(id, appUser.uid, e.target.files[0])
+      setPhoto(newPhoto)
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
   }
 
   function handleKakaoShare() {
     const attendingNames = attending
-      .map((a) => memberMap[a.userId]?.name ?? '알 수 없음')
+      .map((a) => a.userId ? (memberMap[a.userId]?.name ?? '알 수 없음') : '알 수 없음')
       .join(', ')
 
     window.Kakao.Share.sendDefault({
       objectType: 'text',
-      text: `⚽ CNU 풋살 경기 안내\n\n📅 ${match!.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}\n📍 ${match!.venue}\n👥 참석 (${attending.length}명): ${attendingNames}`,
-      link: {
-        mobileWebUrl: window.location.href,
-        webUrl: window.location.href,
-      },
+      text: `⚽ CNU 풋살 경기 안내\n\n📅 ${match!.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}${match!.time ? ' ' + match!.time : ''}\n📍 ${match!.venue}\n👥 참석 (${attending.length}명): ${attendingNames}`,
+      link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
     })
+  }
+
+  function getAttendeeName(a: Attendance): string {
+    if (a.userId) return memberMap[a.userId]?.name ?? '알 수 없음'
+    return '알 수 없음'
   }
 
   const memberMap = Object.fromEntries(members.map((m) => [m.uid, m]))
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-4">
-        <h1 className="text-xl font-bold">
-          {match.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}
-        </h1>
-        <p className="text-gray-500">{match.venue}</p>
-        <p className="text-sm mt-1">
-          참석 예정: <strong>{attending.length}명</strong>
-        </p>
-      </div>
-
-      {appUser && canChangeAttendance && (
-        <button
-          onClick={handleAttendanceToggle}
-          className={`w-full py-3 rounded-lg font-semibold ${
-            myAttendance?.status === 'attending'
-              ? 'bg-red-100 text-red-600'
-              : 'bg-green-500 text-white'
-          }`}
+    <>
+      {/* 라이트박스 */}
+      {lightbox && photo && (
+        <div
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center"
+          onClick={() => setLightbox(false)}
         >
-          {myAttendance?.status === 'attending' ? '불참으로 변경' : '참석 신청'}
-        </button>
+          <img
+            src={photo.url}
+            alt=""
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            className="absolute top-4 right-4 text-white text-3xl leading-none"
+            onClick={() => setLightbox(false)}
+          >
+            ×
+          </button>
+        </div>
       )}
 
-      <button
-        onClick={handleKakaoShare}
-        className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-lg"
-      >
-        카카오톡으로 참석자 공유
-      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handlePhotoSelect}
+      />
 
-      <div>
-        <h2 className="font-semibold mb-2">참석자 ({attending.length}명)</h2>
-        <ul className="space-y-1">
-          {attending.map((a) => (
-            <li key={a.userId} className="flex items-center justify-between bg-white rounded p-3 shadow-sm">
-              <span>{memberMap[a.userId]?.name ?? a.userId}</span>
-              {isVotingOpen && appUser && a.userId !== appUser.uid && (
-                <button
-                  onClick={() => handleVote(a.userId)}
-                  disabled={!!myVote}
-                  className={`text-sm px-3 py-1 rounded-full ${
-                    myVote === a.userId
-                      ? 'bg-yellow-400 text-black font-bold'
-                      : myVote
-                      ? 'bg-gray-100 text-gray-400'
-                      : 'bg-blue-500 text-white'
-                  }`}
-                >
-                  {myVote === a.userId ? 'MVP 투표함' : 'MVP 투표'}
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
+      <div className="space-y-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400"
+        >
+          ← 뒤로
+        </button>
+
+        {/* 커버 사진 — 완료된 경기만 */}
+        {isCompleted && (
+          <div
+            className="w-full aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden relative"
+            onClick={() => photo && !uploading && setLightbox(true)}
+          >
+            {photo ? (
+              <>
+                <img
+                  src={photo.url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onLoad={(e) => (e.currentTarget.style.opacity = '1')}
+                  style={{ opacity: 0, transition: 'opacity 0.3s ease' }}
+                />
+                {/* 수정 버튼 */}
+                {appUser && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }}
+                    disabled={uploading}
+                    className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm"
+                  >
+                    {uploading ? '업로드 중...' : '사진 수정'}
+                  </button>
+                )}
+              </>
+            ) : (
+              <button
+                onClick={() => appUser && fileInputRef.current?.click()}
+                disabled={uploading || !appUser}
+                className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-400 disabled:cursor-default"
+              >
+                {uploading ? (
+                  <span className="text-sm">업로드 중...</span>
+                ) : appUser ? (
+                  <>
+                    <span className="text-3xl">📷</span>
+                    <span className="text-sm">경기 사진 추가</span>
+                  </>
+                ) : null}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* 경기 정보 */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none dark:ring-1 dark:ring-gray-700 p-4">
+          <h1 className="text-xl font-bold dark:text-white">
+            {match.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}
+            {match.time && <span className="text-base font-normal text-gray-500 dark:text-gray-400 ml-2">{match.time}</span>}
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">{match.venue}</p>
+          <p className="text-sm mt-1 dark:text-gray-300">
+            {isCompleted ? '참석' : '참석 예정'}: <strong>{attending.length}명</strong>
+          </p>
+
+        </div>
+
+        {appUser && canChangeAttendance && (
+          <button
+            onClick={handleAttendanceToggle}
+            className={`w-full py-3 rounded-lg font-semibold ${
+              myAttendance?.status === 'attending'
+                ? 'bg-red-100 text-red-600'
+                : 'bg-green-500 text-white'
+            }`}
+          >
+            {myAttendance?.status === 'attending' ? '불참으로 변경' : '참석 신청'}
+          </button>
+        )}
+
+        {!isCompleted && (
+          <button
+            onClick={handleKakaoShare}
+            className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-lg"
+          >
+            카카오톡으로 참석자 공유
+          </button>
+        )}
+
+        {momResult && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none dark:ring-1 dark:ring-gray-700 p-4">
+            <h2 className="font-semibold mb-3 dark:text-white">MOM</h2>
+            {momResult.first.length > 0 && (
+              <p className="text-sm mb-1 dark:text-gray-300">
+                <span className="mr-1">🥇</span>
+                {momResult.first.map((uid) => memberMap[uid]?.name ?? uid).join(', ')}
+              </p>
+            )}
+            {momResult.second.length > 0 && (
+              <p className="text-sm mb-1 dark:text-gray-300">
+                <span className="mr-1">🥈</span>
+                {momResult.second.map((uid) => memberMap[uid]?.name ?? uid).join(', ')}
+              </p>
+            )}
+            {momResult.third.length > 0 && (
+              <p className="text-sm dark:text-gray-300">
+                <span className="mr-1">🥉</span>
+                {momResult.third.map((uid) => memberMap[uid]?.name ?? uid).join(', ')}
+              </p>
+            )}
+          </div>
+        )}
+
+        <div>
+          <h2 className="font-semibold mb-2 dark:text-white">{isCompleted ? '참석자' : '참석 예정자'} ({attending.length}명)</h2>
+          <ul className="space-y-2">
+            {attending.map((a, i) => (
+              <li key={a.userId ?? i} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded p-3 shadow-sm dark:shadow-none dark:ring-1 dark:ring-gray-700">
+                <span className="dark:text-gray-200">{getAttendeeName(a)}</span>
+                {isVotingOpen && appUser && a.userId !== appUser.uid && (
+                  <button
+                    onClick={() => handleVote(a.userId!)}
+                    disabled={!!myVote}
+                    className={`text-sm px-3 py-1 rounded-full ${
+                      myVote === a.userId
+                        ? 'bg-yellow-400 text-black font-bold'
+                        : myVote
+                        ? 'bg-gray-100 text-gray-400'
+                        : 'bg-blue-900 text-white'
+                    }`}
+                  >
+                    {myVote === a.userId ? 'MOM 투표함' : 'MOM 투표'}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
