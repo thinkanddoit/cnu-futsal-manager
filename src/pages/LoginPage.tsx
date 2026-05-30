@@ -32,8 +32,12 @@ export default function LoginPage() {
     try {
       await wakeUpPromise.current
       await loginWithNamePassword(name.trim(), password)
-    } catch (e) {
-      setError('이름 또는 비밀번호가 올바르지 않습니다.')
+    } catch (e: any) {
+      if (e?.message === 'user_not_found') {
+        setError('등록되지 않은 이름입니다.')
+      } else {
+        setError('비밀번호가 올바르지 않습니다.')
+      }
     } finally {
       setLoading(false)
     }
@@ -42,7 +46,14 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
       <h1 className="text-2xl font-bold dark:text-white">CNU 풋살</h1>
-      {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
+      {error && (
+        <div className="text-sm text-center space-y-1">
+          <p className="text-red-500 dark:text-red-400">{error}</p>
+          {error === '비밀번호가 올바르지 않습니다.' && (
+            <p className="text-gray-400 dark:text-gray-500">비밀번호를 모르겠다면 운영진에게 초기화를 요청하세요.</p>
+          )}
+        </div>
+      )}
       {loading ? (
         <LoadingSpinner />
       ) : (

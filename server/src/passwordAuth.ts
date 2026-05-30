@@ -37,7 +37,7 @@ router.post('/login', async (req, res) => {
       .get()
 
     if (snap.empty) {
-      res.status(401).json({ error: 'invalid_credentials' })
+      res.status(401).json({ error: 'user_not_found' })
       return
     }
 

@@ -18,7 +18,10 @@ export async function loginWithNamePassword(name: string, password: string): Pro
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, password }),
   })
-  if (res.status === 401) throw new Error('invalid_credentials')
+  if (res.status === 401) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? 'invalid_credentials')
+  }
   if (!res.ok) throw new Error('Login failed')
   const { customToken } = (await res.json()) as { customToken: string }
   await signInWithCustomToken(auth, customToken)

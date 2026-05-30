@@ -1,0 +1,61 @@
+<h2>사후 경기 등록 — 폼 구조 비교</h2>
+<p class="subtitle">어떤 방식으로 경기 정보를 입력하면 좋을까요?</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding:16px;background:#f8fafc;border-radius:8px;font-size:13px">
+        <div class="mock-nav" style="background:#3b82f6;color:white;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-weight:600">경기 등록</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input class="mock-input" placeholder="📅 날짜 · 시간" style="font-size:12px">
+          <input class="mock-input" placeholder="📍 경기장" style="font-size:12px">
+          <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;font-size:12px;color:#64748b">
+            👥 참석자 선택<br>
+            <span style="font-size:11px;color:#94a3b8">홍길동 ✓ 김철수 ✓ 이영희 □ +비회원 추가</span>
+          </div>
+          <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;font-size:12px;color:#64748b">
+            🏆 MVP<br>
+            <span style="font-size:11px;color:#94a3b8">○ 투표로 진행 &nbsp; ○ 직접 지정</span>
+          </div>
+          <button class="mock-button" style="font-size:12px">등록 완료</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — 한 페이지 폼</h3>
+      <p>모든 항목을 한 화면에서 입력. 스크롤하며 작성하고 한 번에 제출.</p>
+      <div class="pros-cons" style="font-size:12px;margin-top:8px">
+        <div class="pros"><h4>장점</h4><ul><li>빠르게 입력 가능</li><li>구조 단순</li></ul></div>
+        <div class="cons"><h4>단점</h4><ul><li>참석자 많으면 스크롤 길어짐</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding:16px;background:#f8fafc;border-radius:8px;font-size:13px">
+        <div style="display:flex;gap:4px;margin-bottom:12px">
+          <div style="flex:1;background:#3b82f6;color:white;text-align:center;padding:6px;border-radius:6px;font-size:11px;font-weight:600">1 기본정보</div>
+          <div style="flex:1;background:#e2e8f0;text-align:center;padding:6px;border-radius:6px;font-size:11px;color:#94a3b8">2 참석자</div>
+          <div style="flex:1;background:#e2e8f0;text-align:center;padding:6px;border-radius:6px;font-size:11px;color:#94a3b8">3 MVP</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input class="mock-input" placeholder="📅 날짜 · 시간" style="font-size:12px">
+          <input class="mock-input" placeholder="📍 경기장" style="font-size:12px">
+          <div style="display:flex;gap:8px">
+            <button class="mock-button" style="font-size:12px;background:#e2e8f0;color:#64748b">이전</button>
+            <button class="mock-button" style="font-size:12px;flex:1">다음 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — 단계별 wizard</h3>
+      <p>기본정보 → 참석자 → MVP 순서로 단계를 나눠서 입력.</p>
+      <div class="pros-cons" style="font-size:12px;margin-top:8px">
+        <div class="pros"><h4>장점</h4><ul><li>각 단계에 집중 가능</li><li>참석자 선택 UX 넓게 쓸 수 있음</li></ul></div>
+        <div class="cons"><h4>단점</h4>  <ul><li>단계 이동이 번거로울 수 있음</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

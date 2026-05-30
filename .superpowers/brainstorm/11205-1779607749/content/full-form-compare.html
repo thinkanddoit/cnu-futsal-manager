@@ -1,0 +1,106 @@
+<h2>전체 폼 구조 비교</h2>
+<p class="subtitle">참석자 최대 16명 포함했을 때 실제 느낌이에요</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">A — 한 페이지 (스크롤)</div>
+    <div class="mockup-body" style="font-size:12px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-weight:600;font-size:13px;color:#1e40af">경기 등록</div>
+
+      <input class="mock-input" placeholder="📅 날짜" style="font-size:12px">
+      <input class="mock-input" placeholder="⏰ 시간 (예: 20:00)" style="font-size:12px">
+      <input class="mock-input" placeholder="📍 경기장" style="font-size:12px">
+
+      <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-weight:600">참석자</span>
+          <span style="color:#3b82f6">9/16명</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+          <div style="padding:6px 8px;border:2px solid #3b82f6;border-radius:6px;background:#eff6ff;font-size:11px">✓ 홍길동</div>
+          <div style="padding:6px 8px;border:2px solid #3b82f6;border-radius:6px;background:#eff6ff;font-size:11px">✓ 김철수</div>
+          <div style="padding:6px 8px;border:2px solid #3b82f6;border-radius:6px;background:#eff6ff;font-size:11px">✓ 이영희</div>
+          <div style="padding:6px 8px;border:2px solid #3b82f6;border-radius:6px;background:#eff6ff;font-size:11px">✓ 박민수</div>
+          <div style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;color:#94a3b8">□ 최지훈</div>
+          <div style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;color:#94a3b8">□ 정수진</div>
+          <div style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;color:#94a3b8">□ 강동원</div>
+          <div style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;color:#94a3b8">□ 윤서연</div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px">
+          <input class="mock-input" placeholder="비회원 이름" style="font-size:11px;flex:1">
+          <button class="mock-button" style="font-size:11px;padding:4px 8px">+</button>
+        </div>
+      </div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px">
+        <div style="font-weight:600;margin-bottom:8px">🏆 MVP</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="radio" name="mvp" checked> 투표로 진행</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="radio" name="mvp"> 직접 지정</label>
+        </div>
+      </div>
+
+      <button class="mock-button" style="font-size:12px">등록 완료</button>
+
+      <div style="text-align:center;color:#94a3b8;font-size:11px;padding:4px">↑ 스크롤 길이: 약 800px</div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">B — 단계별 (3단계)</div>
+    <div class="mockup-body" style="font-size:12px">
+
+      <!-- Step indicator -->
+      <div style="display:flex;gap:4px;margin-bottom:14px">
+        <div style="flex:1;background:#3b82f6;color:white;text-align:center;padding:5px;border-radius:6px;font-size:11px;font-weight:600">① 기본정보</div>
+        <div style="flex:1;background:#e2e8f0;text-align:center;padding:5px;border-radius:6px;font-size:11px;color:#94a3b8">② 참석자</div>
+        <div style="flex:1;background:#e2e8f0;text-align:center;padding:5px;border-radius:6px;font-size:11px;color:#94a3b8">③ MVP</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:80px">
+        <input class="mock-input" placeholder="📅 날짜" style="font-size:12px">
+        <input class="mock-input" placeholder="⏰ 시간 (예: 20:00)" style="font-size:12px">
+        <input class="mock-input" placeholder="📍 경기장" style="font-size:12px">
+      </div>
+
+      <div style="border-top:1px solid #f1f5f9;padding-top:10px;display:flex;gap:8px">
+        <button class="mock-button" style="font-size:12px;background:#f1f5f9;color:#64748b;flex:1">취소</button>
+        <button class="mock-button" style="font-size:12px;flex:2">다음 →</button>
+      </div>
+
+      <div style="margin-top:16px;border-top:2px dashed #e2e8f0;padding-top:10px">
+        <div style="display:flex;gap:4px;margin-bottom:10px">
+          <div style="flex:1;background:#d1fae5;color:#065f46;text-align:center;padding:5px;border-radius:6px;font-size:11px;font-weight:600">① ✓ 완료</div>
+          <div style="flex:1;background:#3b82f6;color:white;text-align:center;padding:5px;border-radius:6px;font-size:11px;font-weight:600">② 참석자</div>
+          <div style="flex:1;background:#e2e8f0;text-align:center;padding:5px;border-radius:6px;font-size:11px;color:#94a3b8">③ MVP</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px">
+          <div style="padding:8px;border:2px solid #3b82f6;border-radius:6px;background:#eff6ff;font-size:11px">✓ 홍길동</div>
+          <div style="padding:8px;border:2px solid #3b82f6;border-radius:6px;background:#eff6ff;font-size:11px">✓ 김철수</div>
+          <div style="padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;color:#94a3b8">□ 이영희</div>
+          <div style="padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;color:#94a3b8">□ 박민수</div>
+        </div>
+        <div style="text-align:center;color:#94a3b8;font-size:11px">참석자 선택에만 집중 — 화면 꽉 활용</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:16px">
+  <div class="options">
+    <div class="option" data-choice="a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>한 페이지</h3>
+        <p>빠르게 입력, 스크롤 길어짐</p>
+      </div>
+    </div>
+    <div class="option" data-choice="b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>단계별 (추천)</h3>
+        <p>각 단계에 집중, 참석자 선택 UX 여유로움</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,75 @@
+<h2>③ MVP — 동률 지원 (복수 선택)</h2>
+<p class="subtitle">각 등수마다 여러 명 선택 가능. 이미 선택된 사람은 다른 등수에서 비활성화.</p>
+
+<div class="mockup" style="max-width:390px;margin:0 auto">
+  <div class="mockup-header">직접 지정 — 복수 선택 예시</div>
+  <div class="mockup-body" style="font-size:13px">
+    <div style="display:flex;gap:4px;margin-bottom:14px">
+      <div style="flex:1;background:#d1fae5;color:#065f46;text-align:center;padding:5px;border-radius:6px;font-size:11px">① ✓</div>
+      <div style="flex:1;background:#d1fae5;color:#065f46;text-align:center;padding:5px;border-radius:6px;font-size:11px">② ✓</div>
+      <div style="flex:1;background:#3b82f6;color:white;text-align:center;padding:5px;border-radius:6px;font-size:11px;font-weight:600">③ MVP</div>
+    </div>
+
+    <!-- 1등 (2명 동률) -->
+    <div style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:18px">🥇</span>
+          <span style="font-weight:600;font-size:13px">1등</span>
+        </div>
+        <span style="font-size:11px;color:#3b82f6;background:#eff6ff;padding:2px 8px;border-radius:10px">2명 선택됨</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+        <div style="padding:8px;border:2px solid #f59e0b;border-radius:8px;background:#fffbeb;text-align:center;font-size:12px;font-weight:600">✓ 홍길동</div>
+        <div style="padding:8px;border:2px solid #f59e0b;border-radius:8px;background:#fffbeb;text-align:center;font-size:12px;font-weight:600">✓ 김철수</div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#374151">이영희</div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#374151">박민수</div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#374151">최지훈</div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#374151">정수진</div>
+      </div>
+    </div>
+
+    <!-- 2등 (1명) -->
+    <div style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:18px">🥈</span>
+          <span style="font-weight:600;font-size:13px">2등</span>
+        </div>
+        <span style="font-size:11px;color:#6b7280;background:#f3f4f6;padding:2px 8px;border-radius:10px">1명 선택됨</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#94a3b8;background:#f8fafc">홍길동<div style="font-size:9px;color:#f59e0b">1등</div></div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#94a3b8;background:#f8fafc">김철수<div style="font-size:9px;color:#f59e0b">1등</div></div>
+        <div style="padding:8px;border:2px solid #6b7280;border-radius:8px;background:#f3f4f6;text-align:center;font-size:12px;font-weight:600">✓ 이영희</div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#374151">박민수</div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#374151">최지훈</div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#374151">정수진</div>
+      </div>
+    </div>
+
+    <!-- 3등 (미선택) -->
+    <div style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:18px">🥉</span>
+          <span style="font-weight:600;font-size:13px">3등</span>
+          <span style="font-size:11px;color:#94a3b8">(선택 안 해도 됨)</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#94a3b8;background:#f8fafc">홍길동<div style="font-size:9px;color:#f59e0b">1등</div></div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#94a3b8;background:#f8fafc">김철수<div style="font-size:9px;color:#f59e0b">1등</div></div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#94a3b8;background:#f8fafc">이영희<div style="font-size:9px;color:#6b7280">2등</div></div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#374151">박민수</div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#374151">최지훈</div>
+        <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;color:#374151">정수진</div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid #f1f5f9;padding-top:10px;display:flex;gap:8px">
+      <button class="mock-button" style="font-size:12px;background:#f1f5f9;color:#64748b;flex:1">← 이전</button>
+      <button class="mock-button" style="font-size:12px;flex:2">등록 완료</button>
+    </div>
+  </div>
+</div>

@@ -4,6 +4,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -103,12 +104,30 @@ export async function deleteMatch(matchId: string): Promise<void> {
     getDocs(query(collection(db, 'mvpVotes'), where('matchId', '==', matchId))),
     getDocs(query(collection(db, 'mvpResults'), where('matchId', '==', matchId))),
   ])
+
+  // Collect guest UIDs from this match's attendees
+  const attendeeUids = attendSnap.docs.map((d) => d.data().userId).filter(Boolean) as string[]
+  const userSnaps = await Promise.all(attendeeUids.map((uid) => getDoc(doc(db, 'users', uid))))
+  const guestUids = userSnaps.filter((s) => s.exists() && s.data().role === 'guest').map((s) => s.id)
+
   await Promise.all([
     ...attendSnap.docs.map((d) => deleteDoc(d.ref)),
     ...votesSnap.docs.map((d) => deleteDoc(d.ref)),
     ...resultsSnap.docs.map((d) => deleteDoc(d.ref)),
   ])
   await deleteDoc(doc(db, 'matches', matchId))
+
+  // Delete guest user docs that have no remaining attendance records
+  if (guestUids.length > 0) {
+    await Promise.all(
+      guestUids.map(async (uid) => {
+        const remaining = await getDocs(
+          query(collection(db, 'attendances'), where('userId', '==', uid))
+        )
+        if (remaining.empty) await deleteDoc(doc(db, 'users', uid))
+      })
+    )
+  }
 }
 
 export async function autoCompleteMatches(): Promise<void> {

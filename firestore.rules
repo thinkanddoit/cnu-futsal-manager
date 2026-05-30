@@ -57,6 +57,11 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /matchPhotos/{matchId} {
+      allow read: if true;
+      allow write: if isMember();
+    }
+
     match /userCredentials/{uid} {
       allow read, write: if false; // server admin SDK only
     }

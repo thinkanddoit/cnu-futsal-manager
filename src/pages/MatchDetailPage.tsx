@@ -36,6 +36,7 @@ export default function MatchDetailPage() {
   const [myVote, setMyVote] = useState<string | null>(null)
   const [momResult, setMomResult] = useState<MomResult | null>(null)
   const [photo, setPhoto] = useState<MatchPhoto | null>(null)
+  const [photoLoading, setPhotoLoading] = useState(true)
   const [lightbox, setLightbox] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -49,7 +50,7 @@ export default function MatchDetailPage() {
     })
     getAllUsers().then(setMembers)
     getMomResult(id).then(setMomResult)
-    getMatchPhoto(id).then(setPhoto)
+    getMatchPhoto(id).then((p) => { setPhoto(p); setPhotoLoading(false) })
   }, [id])
 
   useEffect(() => {
@@ -117,18 +118,16 @@ export default function MatchDetailPage() {
     }
   }
 
-  async function handleShare() {
+  function handleKakaoShare() {
     const attendingNames = attending
       .map((a) => a.userId ? (memberMap[a.userId]?.name ?? '알 수 없음') : '알 수 없음')
       .join(', ')
-    const text = `⚽ CNU 풋살 경기 안내\n\n📅 ${match!.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}${match!.time ? ' ' + match!.time : ''}\n📍 ${match!.venue}\n👥 참석 (${attending.length}명): ${attendingNames}`
 
-    if (navigator.share) {
-      await navigator.share({ text })
-    } else {
-      await navigator.clipboard.writeText(text)
-      alert('클립보드에 복사되었습니다.')
-    }
+    window.Kakao.Share.sendDefault({
+      objectType: 'text',
+      text: `⚽ CNU 풋살 경기 안내\n\n📅 ${match!.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}${match!.time ? ' ' + match!.time : ''}\n📍 ${match!.venue}\n👥 참석 (${attending.length}명): ${attendingNames}`,
+      link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
+    })
   }
 
   function getAttendeeName(a: Attendance): string {
@@ -177,13 +176,17 @@ export default function MatchDetailPage() {
           ← 뒤로
         </button>
 
-        {/* 커버 사진 — 완료된 경기만 */}
-        {isCompleted && (
+        {/* 커버 사진 — 완료된 경기 + 로그인 유저만 */}
+        {isCompleted && appUser && (
           <div
             className="w-full aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden relative"
             onClick={() => photo && !uploading && setLightbox(true)}
           >
-            {photo ? (
+            {photoLoading ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <LoadingSpinner />
+              </div>
+            ) : photo ? (
               <>
                 <img
                   src={photo.url}
@@ -192,31 +195,28 @@ export default function MatchDetailPage() {
                   onLoad={(e) => (e.currentTarget.style.opacity = '1')}
                   style={{ opacity: 0, transition: 'opacity 0.3s ease' }}
                 />
-                {/* 수정 버튼 */}
-                {appUser && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }}
-                    disabled={uploading}
-                    className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm"
-                  >
-                    {uploading ? '업로드 중...' : '사진 수정'}
-                  </button>
-                )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }}
+                  disabled={uploading}
+                  className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm"
+                >
+                  {uploading ? '업로드 중...' : '사진 수정'}
+                </button>
               </>
             ) : (
               <button
-                onClick={() => appUser && fileInputRef.current?.click()}
-                disabled={uploading || !appUser}
-                className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-400 disabled:cursor-default"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-400"
               >
                 {uploading ? (
-                  <span className="text-sm">업로드 중...</span>
-                ) : appUser ? (
+                  <LoadingSpinner />
+                ) : (
                   <>
                     <span className="text-3xl">📷</span>
                     <span className="text-sm">경기 사진 추가</span>
                   </>
-                ) : null}
+                )}
               </button>
             )}
           </div>
@@ -250,7 +250,7 @@ export default function MatchDetailPage() {
 
         {!isCompleted && (
           <button
-            onClick={handleShare}
+            onClick={handleKakaoShare}
             className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-lg"
           >
             카카오톡으로 참석자 공유
