@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { redirectToKakaoLogin, loginWithKakaoCode } from '../services/auth'
+import { redirectToKakaoLogin, loginWithKakaoCode, wakeUpServer } from '../services/auth'
 import { useAuth } from '../hooks/useAuth'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 
@@ -11,6 +11,12 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const { appUser } = useAuth()
   const loginAttempted = useRef(false)
+  const wakeUpPromise = useRef<Promise<void> | null>(null)
+
+  // 페이지 로드 즉시 서버 wake-up 시작
+  useEffect(() => {
+    wakeUpPromise.current = wakeUpServer()
+  }, [])
 
   useEffect(() => {
     if (appUser) {
@@ -41,7 +47,7 @@ export default function LoginPage() {
         <LoadingSpinner />
       ) : (
         <button
-          onClick={() => { setLoading(true); redirectToKakaoLogin() }}
+          onClick={async () => { setLoading(true); await wakeUpPromise.current; redirectToKakaoLogin() }}
           className="bg-yellow-400 text-black font-semibold px-6 py-3 rounded-lg hover:bg-yellow-300"
         >
           카카오로 로그인

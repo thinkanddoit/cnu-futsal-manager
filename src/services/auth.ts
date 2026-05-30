@@ -15,13 +15,17 @@ export function initKakaoSdk() {
   }
 }
 
-export async function redirectToKakaoLogin() {
+export async function wakeUpServer(): Promise<void> {
   const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001'
   try {
-    await fetch(`${serverUrl}/health`, { signal: AbortSignal.timeout(15000) })
+    // no-cors: CORS 없이 요청 가능, 서버 깨우기 목적
+    await fetch(`${serverUrl}/health`, { mode: 'no-cors', signal: AbortSignal.timeout(35000) })
   } catch {
-    // 서버 응답 없어도 일단 진행
+    // 응답 실패해도 진행
   }
+}
+
+export function redirectToKakaoLogin() {
   const params = new URLSearchParams({
     client_id: import.meta.env.VITE_KAKAO_REST_API_KEY,
     redirect_uri: import.meta.env.VITE_KAKAO_REDIRECT_URI,
