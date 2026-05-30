@@ -4,7 +4,7 @@ import { getAllUsers } from '../services/users'
 import { UserStats } from '../types'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 
-type RankedRow = UserStats & { name: string; rank: number; isGuest: boolean }
+type RankedRow = UserStats & { name: string; rank: number }
 
 function JerseyIcon() {
   return (
@@ -35,7 +35,6 @@ export default function RankingsPage() {
           ...stats[i],
           name: user.name,
           rank,
-          isGuest: user.role === 'guest',
         })
       }
       setRows(ranked)
@@ -74,9 +73,6 @@ export default function RankingsPage() {
                 <div className="flex items-center gap-2">
                   <JerseyIcon />
                   <span className="dark:text-gray-200">{r.name}</span>
-                  {r.isGuest && (
-                    <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded-full">비회원</span>
-                  )}
                 </div>
               </td>
               <td className="py-3 text-right font-semibold text-blue-900 dark:text-amber-400">{r.totalPoints}</td>
