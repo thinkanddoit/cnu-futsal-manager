@@ -15,7 +15,13 @@ export function initKakaoSdk() {
   }
 }
 
-export function redirectToKakaoLogin() {
+export async function redirectToKakaoLogin() {
+  const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001'
+  try {
+    await fetch(`${serverUrl}/health`, { signal: AbortSignal.timeout(15000) })
+  } catch {
+    // 서버 응답 없어도 일단 진행
+  }
   const params = new URLSearchParams({
     client_id: import.meta.env.VITE_KAKAO_REST_API_KEY,
     redirect_uri: import.meta.env.VITE_KAKAO_REDIRECT_URI,
