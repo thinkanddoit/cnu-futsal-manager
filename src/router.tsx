@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage'
 import PendingPage from './pages/PendingPage'
 import MatchDetailPage from './pages/MatchDetailPage'
 import MyPage from './pages/MyPage'
+import ChangePasswordPage from './pages/ChangePasswordPage'
 import AdminHomePage from './pages/admin/AdminHomePage'
 import AdminMatchesPage from './pages/admin/AdminMatchesPage'
 import AdminMembersPage from './pages/admin/AdminMembersPage'
@@ -25,6 +26,10 @@ export const router = createBrowserRouter([
       {
         path: '/mypage',
         element: <ProtectedRoute><MyPage /></ProtectedRoute>,
+      },
+      {
+        path: '/mypage/change-password',
+        element: <ProtectedRoute><ChangePasswordPage /></ProtectedRoute>,
       },
       {
         path: '/admin',

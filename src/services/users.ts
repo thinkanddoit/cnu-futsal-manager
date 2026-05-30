@@ -93,6 +93,7 @@ export async function createMember(name: string): Promise<string> {
     body: JSON.stringify({ name }),
   })
   if (res.status === 403) throw new Error('forbidden')
+  if (res.status === 409) throw new Error('duplicate_name')
   if (!res.ok) throw new Error('Failed to create member')
   const { uid } = (await res.json()) as { uid: string }
   return uid

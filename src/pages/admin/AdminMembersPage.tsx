@@ -54,8 +54,12 @@ export default function AdminMembersPage() {
       const newUser: AppUser = { uid, name, role: 'member', createdAt: new Date() }
       setMembers((prev) => [...prev, newUser])
       setNewName('')
-    } catch {
-      setCreateError('멤버 추가에 실패했습니다.')
+    } catch (e: any) {
+      if (e?.message === 'duplicate_name') {
+        setCreateError(`'${name}'은(는) 이미 존재하는 이름입니다.`)
+      } else {
+        setCreateError('멤버 추가에 실패했습니다.')
+      }
     } finally {
       setCreating(false)
     }

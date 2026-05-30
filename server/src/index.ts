@@ -51,7 +51,11 @@ app.post('/users/create', async (req, res) => {
 
     const uid = await createMemberUser(name.trim())
     res.json({ uid })
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.message === 'duplicate_name') {
+      res.status(409).json({ error: 'duplicate_name' })
+      return
+    }
     console.error('Create user error:', err)
     res.status(500).json({ error: 'Internal server error' })
   }

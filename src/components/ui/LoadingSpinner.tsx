@@ -4,7 +4,7 @@ export function LoadingSpinner() {
   const [step, setStep] = useState(0)
 
   useEffect(() => {
-    const id = setInterval(() => setStep((s) => (s + 1) % 4), 400)
+    const id = setInterval(() => setStep((s) => (s + 1) % 4), 250)
     return () => clearInterval(id)
   }, [])
 
@@ -13,7 +13,7 @@ export function LoadingSpinner() {
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="w-2 h-2 rounded-full bg-amber-400 transition-opacity duration-200"
+          className="w-2 h-2 rounded-full bg-amber-400 transition-opacity duration-150"
           style={{ opacity: i < step ? 1 : 0.15 }}
         />
       ))}
