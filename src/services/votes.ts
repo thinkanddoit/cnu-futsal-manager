@@ -8,13 +8,13 @@ import {
   Timestamp,
 } from 'firebase/firestore'
 import { db } from '../firebase'
-import { MvpVote } from '../types'
+import { MomVote } from '../types'
 
 function voteId(matchId: string, voterId: string) {
   return `${matchId}_${voterId}`
 }
 
-function docToVote(data: Record<string, any>): MvpVote {
+function docToVote(data: Record<string, any>): MomVote {
   return {
     matchId: data.matchId,
     voterId: data.voterId,
@@ -23,7 +23,7 @@ function docToVote(data: Record<string, any>): MvpVote {
   }
 }
 
-export async function castMvpVote(
+export async function castMomVote(
   matchId: string,
   voterId: string,
   votedFor: string
@@ -38,13 +38,13 @@ export async function castMvpVote(
   })
 }
 
-export async function getVotesForMatch(matchId: string): Promise<MvpVote[]> {
+export async function getVotesForMatch(matchId: string): Promise<MomVote[]> {
   const q = query(collection(db, 'mvpVotes'), where('matchId', '==', matchId))
   const snap = await getDocs(q)
   return snap.docs.map((d) => docToVote(d.data()))
 }
 
-export async function getMyVote(matchId: string, voterId: string): Promise<MvpVote | null> {
+export async function getMyVote(matchId: string, voterId: string): Promise<MomVote | null> {
   const id = voteId(matchId, voterId)
   const snap = await getDocs(query(collection(db, 'mvpVotes'), where('__name__', '==', id)))
   if (snap.empty) return null

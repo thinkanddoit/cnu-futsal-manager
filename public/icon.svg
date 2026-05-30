@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+
+  <!-- Background: dark navy -->
+  <rect width="512" height="512" rx="108" fill="#0f172a"/>
+
+  <!-- Red diagonal brush strokes (jersey motif) -->
+  <path d="M-20,210 L148,462 L178,450 L8,196 Z" fill="#dc2626" opacity="0.5"/>
+  <path d="M298,22 L464,272 L492,258 L326,8 Z" fill="#dc2626" opacity="0.4"/>
+
+  <!-- Shield outer (white border) -->
+  <path d="M256,472 C160,422 78,358 78,248 L78,102 C78,66 104,56 130,56 L382,56 C408,56 434,66 434,102 L434,248 C434,358 352,422 256,472 Z" fill="white"/>
+
+  <!-- Shield inner fill (navy) -->
+  <path d="M256,448 C170,402 102,344 102,246 L102,112 C102,88 122,80 140,80 L372,80 C390,80 410,88 410,112 L410,246 C410,344 342,402 256,448 Z" fill="#1e3a5f"/>
+
+  <!-- Red bottom of shield -->
+  <path d="M256,448 C170,402 102,344 102,298 L410,298 C410,344 342,402 256,448 Z" fill="#dc2626"/>
+
+  <!-- White divider line -->
+  <rect x="102" y="295" width="308" height="6" fill="white"/>
+
+  <!-- ===== REARING HORSE (white silhouette) ===== -->
+
+  <!-- Body (rotated ellipse, leaning back for rearing pose) -->
+  <ellipse cx="242" cy="210" rx="66" ry="40" transform="rotate(-20 242 210)" fill="white"/>
+
+  <!-- Neck + Head (single polygon shape) -->
+  <polygon points="
+    264,182  268,167  276,152  286,138  296,126  308,112
+    322,108  330,118  320,128  308,130  298,142  288,156
+    278,170  270,186
+  " fill="white"/>
+
+  <!-- Head fill (ellipse to smooth out) -->
+  <ellipse cx="318" cy="116" rx="22" ry="16" transform="rotate(20 318 116)" fill="white"/>
+
+  <!-- Ear -->
+  <polygon points="304,100 308,83 320,96" fill="white"/>
+
+  <!-- Front right leg (raised high, pointing up-forward) -->
+  <polygon points="
+    272,188  278,173  290,158  305,148  322,144  330,154
+    316,162  302,168  286,178  276,196
+  " fill="white"/>
+
+  <!-- Front left leg (raised, slightly lower) -->
+  <polygon points="
+    258,196  264,183  274,172  286,166  298,165  303,174
+    290,176  276,182  264,194  258,204
+  " fill="white"/>
+
+  <!-- Back right leg -->
+  <path d="M244,246 C245,262 246,278 246,294 L260,294 C259,278 257,262 255,246 Z" fill="white"/>
+
+  <!-- Back left leg -->
+  <path d="M218,248 C217,264 215,280 214,294 L228,294 C228,280 228,264 228,248 Z" fill="white"/>
+
+  <!-- Tail (flowing left and down) -->
+  <path d="M182,218 C163,242 152,268 150,294 L160,296 C163,274 173,250 190,228 Z" fill="white"/>
+
+</svg>

@@ -29,12 +29,6 @@ interface KakaoTokenResponse {
 
 interface KakaoUserInfo {
   id: number
-  kakao_account?: {
-    profile?: {
-      nickname?: string
-      profile_image_url?: string
-    }
-  }
 }
 
 router.post('/kakao', async (req, res) => {
@@ -76,8 +70,6 @@ router.post('/kakao', async (req, res) => {
     const userData = (await userRes.json()) as KakaoUserInfo
 
     const kakaoId = String(userData.id)
-    const name = userData.kakao_account?.profile?.nickname ?? '멤버'
-    const profileImage = userData.kakao_account?.profile?.profile_image_url ?? ''
 
     // 3. Firestore: 사용자 생성 또는 확인
     const db = admin.firestore()
@@ -87,9 +79,8 @@ router.post('/kakao', async (req, res) => {
     if (existing.empty) {
       const newUserRef = db.collection('users').doc()
       await newUserRef.set({
-        name,
+        name: '',
         kakaoId,
-        profileImage,
         role: 'pending',
         nameConfirmed: false,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),

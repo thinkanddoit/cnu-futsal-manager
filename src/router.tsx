@@ -23,10 +23,7 @@ export const router = createBrowserRouter([
       { path: '/login', element: <LoginPage /> },
       { path: '/pending', element: <PendingPage /> },
       { path: '/register', element: <RegisterPage /> },
-      {
-        path: '/match/:id',
-        element: <ProtectedRoute><MatchDetailPage /></ProtectedRoute>,
-      },
+      { path: '/match/:id', element: <MatchDetailPage /> },
       {
         path: '/mypage',
         element: <ProtectedRoute><MyPage /></ProtectedRoute>,

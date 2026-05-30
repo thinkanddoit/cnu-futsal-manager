@@ -1,14 +1,14 @@
-import { collection, addDoc, getDocs, query, where, Timestamp } from 'firebase/firestore'
+import { collection, setDoc, doc, getDocs, query, where, Timestamp } from 'firebase/firestore'
 import { db } from '../firebase'
-import { MvpResult } from '../types'
+import { MomResult } from '../types'
 
-export async function saveMvpResult(
+export async function saveMomResult(
   matchId: string,
   first: string[],
   second: string[],
   third: string[]
 ): Promise<void> {
-  await addDoc(collection(db, 'mvpResults'), {
+  await setDoc(doc(db, 'mvpResults', matchId), {
     matchId,
     first,
     second,
@@ -17,7 +17,7 @@ export async function saveMvpResult(
   })
 }
 
-export async function getMvpResult(matchId: string): Promise<MvpResult | null> {
+export async function getMomResult(matchId: string): Promise<MomResult | null> {
   const q = query(collection(db, 'mvpResults'), where('matchId', '==', matchId))
   const snap = await getDocs(q)
   if (snap.empty) return null

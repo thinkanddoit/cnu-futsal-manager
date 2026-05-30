@@ -3,9 +3,13 @@ import { RouterProvider } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { router } from './router'
 import { initKakaoSdk } from './services/auth'
+import { autoCompleteMatches } from './services/matches'
 
 export default function App() {
-  useEffect(() => { initKakaoSdk() }, [])
+  useEffect(() => {
+    initKakaoSdk()
+    autoCompleteMatches().catch(() => {})
+  }, [])
 
   return (
     <AuthProvider>

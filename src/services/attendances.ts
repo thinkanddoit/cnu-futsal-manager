@@ -1,8 +1,8 @@
 import {
   doc,
   setDoc,
-  addDoc,
   getDocs,
+  updateDoc,
   collection,
   query,
   where,
@@ -19,7 +19,7 @@ function attendanceId(matchId: string, userId: string) {
 function docToAttendance(data: Record<string, any>): Attendance {
   return {
     matchId: data.matchId,
-    userId: data.userId,
+    userId: data.userId ?? null,
     status: data.status as AttendanceStatus,
     updatedAt: data.updatedAt?.toDate() ?? new Date(),
   }
@@ -61,29 +61,23 @@ export async function getUserAttendances(userId: string): Promise<Attendance[]> 
   return snap.docs.map((d) => docToAttendance(d.data()))
 }
 
-export interface AttendeeInput {
-  userId: string | null
-  guestName?: string
-}
-
 export async function saveMatchAttendances(
   matchId: string,
-  attendees: AttendeeInput[]
+  uids: string[]
 ): Promise<void> {
-  const writes = attendees.map((a) => {
-    const docData: Record<string, any> = {
+  const writes = uids.map((uid) =>
+    setDoc(doc(db, 'attendances', attendanceId(matchId, uid)), {
       matchId,
-      userId: a.userId,
+      userId: uid,
       status: 'attending' as AttendanceStatus,
       updatedAt: Timestamp.now(),
-    }
-    if (a.guestName) docData.guestName = a.guestName
-
-    if (a.userId) {
-      return setDoc(doc(db, 'attendances', attendanceId(matchId, a.userId)), docData)
-    } else {
-      return addDoc(collection(db, 'attendances'), docData)
-    }
-  })
+    })
+  )
   await Promise.all(writes)
+}
+
+export async function linkGuestAttendances(memberUid: string, guestUid: string): Promise<void> {
+  const q = query(collection(db, 'attendances'), where('userId', '==', guestUid))
+  const snap = await getDocs(q)
+  await Promise.all(snap.docs.map((d) => updateDoc(d.ref, { userId: memberUid })))
 }

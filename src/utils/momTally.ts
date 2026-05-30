@@ -11,7 +11,7 @@ export interface TallyResult {
 
 const POINTS: Record<number, number> = { 1: 3, 2: 2, 3: 1 }
 
-export function tallyMvpVotes(voteCounts: VoteCount[]): TallyResult[] {
+export function tallyMomVotes(voteCounts: VoteCount[]): TallyResult[] {
   if (voteCounts.length === 0) return []
 
   const sorted = [...voteCounts].sort((a, b) => b.votes - a.votes)
