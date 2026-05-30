@@ -55,7 +55,11 @@ router.post('/kakao', async (req, res) => {
     const tokenData = (await tokenRes.json()) as KakaoTokenResponse
     if (!tokenData.access_token) {
       console.error('Kakao token error:', JSON.stringify(tokenData))
-      res.status(401).json({ error: 'Failed to get Kakao access token', detail: tokenData })
+      const isRateLimit = (tokenData as any).error_code === 'KOE237'
+      res.status(isRateLimit ? 429 : 401).json({
+        error: isRateLimit ? 'rate_limit' : 'Failed to get Kakao access token',
+        detail: tokenData,
+      })
       return
     }
 

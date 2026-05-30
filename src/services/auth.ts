@@ -41,6 +41,7 @@ export async function loginWithKakaoCode(code: string): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code, redirectUri: import.meta.env.VITE_KAKAO_REDIRECT_URI }),
   })
+  if (res.status === 429) throw new Error('rate_limit')
   if (!res.ok) throw new Error('Login failed')
   const { customToken } = await res.json() as { customToken: string }
   await signInWithCustomToken(auth, customToken)

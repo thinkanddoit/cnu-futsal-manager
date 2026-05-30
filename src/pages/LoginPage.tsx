@@ -35,7 +35,11 @@ export default function LoginPage() {
     loginAttempted.current = true
     setLoading(true)
     loginWithKakaoCode(code)
-      .catch(() => setError('로그인에 실패했습니다. 다시 시도해주세요.'))
+      .catch((e) => setError(
+        e?.message === 'rate_limit'
+          ? '잠시 후 다시 시도해주세요. (카카오 요청 한도 초과)'
+          : '로그인에 실패했습니다. 다시 시도해주세요.'
+      ))
       .finally(() => setLoading(false))
   }, [searchParams])
 
