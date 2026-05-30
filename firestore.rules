@@ -36,11 +36,16 @@ service cloud.firestore {
     }
 
     match /mvpVotes/{docId} {
-      allow read: if isMember();
+      allow read: if true;
       allow create: if isMember() &&
         request.auth.uid == request.resource.data.voterId &&
         request.auth.uid != request.resource.data.votedFor;
       allow update, delete: if false;
+    }
+
+    match /mvpResults/{docId} {
+      allow read: if true;
+      allow write: if false;
     }
 
     match /userStats/{uid} {

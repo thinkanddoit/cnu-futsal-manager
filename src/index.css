@@ -2,13 +2,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@keyframes dot-fade {
-  0%, 100% { opacity: 0.2; transform: scale(0.8); }
-  50%       { opacity: 1;   transform: scale(1.2); }
+@keyframes dot-seq {
+  0%, 60%, 100% { opacity: 0.15; }
+  30% { opacity: 1; }
 }
 
-.animate-dot-fade {
-  animation: dot-fade 1.2s ease-in-out infinite;
+.dot {
+  animation: dot-seq 1.2s ease-in-out infinite;
 }
 
 @keyframes spinner-appear {
