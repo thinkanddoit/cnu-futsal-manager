@@ -136,10 +136,6 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
   }
 
   const memberAttendees = members.filter((m) => selectedUids.includes(m.uid)).map((m) => ({ id: m.uid, label: m.name }))
-  const allAttendees = [
-    ...memberAttendees,
-    ...guests.map((g) => ({ id: `guest_${g}`, label: g })),
-  ]
 
   async function handleSubmit() {
     if (!appUser) return
