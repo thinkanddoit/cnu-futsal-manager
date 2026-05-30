@@ -4,8 +4,9 @@ import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../hooks/useAuth'
 import { subscribeToMatchAttendances, setAttendance } from '../services/attendances'
-import { castMomVote, getMyVote } from '../services/votes'
+import { castMomVote, getMyVote, getVotesForMatch } from '../services/votes'
 import { getMomResult } from '../services/momResults'
+import { serverTally } from '../services/stats'
 import { getAllUsers } from '../services/users'
 import { setMatchPhoto, getMatchPhoto } from '../services/photos'
 import { Match, Attendance, AppUser, MomResult, MatchPhoto } from '../types'
@@ -86,6 +87,22 @@ export default function MatchDetailPage() {
     if (!appUser || !id) return
     await castMomVote(id, appUser.uid, votedFor)
     setMyVote(votedFor)
+
+    // 비용병 참석자 전원 투표 완료 시 자동 집계
+    const eligibleVoterIds = attending
+      .filter((a) => a.userId && memberMap[a.userId]?.role !== 'guest')
+      .map((a) => a.userId!)
+
+    if (eligibleVoterIds.length > 0) {
+      const votes = await getVotesForMatch(id)
+      const voterIds = new Set(votes.map((v) => v.voterId))
+      if (eligibleVoterIds.every((uid) => voterIds.has(uid))) {
+        await serverTally(id)
+        const snap = await getDoc(doc(db, 'matches', id))
+        if (snap.exists()) setMatch(docToMatch(snap.id, snap.data()))
+        getMomResult(id).then(setMomResult)
+      }
+    }
   }
 
   async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -267,22 +284,23 @@ export default function MatchDetailPage() {
         <div>
           <h2 className="font-semibold mb-2 dark:text-white">{isCompleted ? '참석자' : '참석 예정자'} ({attending.length}명)</h2>
           <ul className="space-y-2">
-            {attending.map((a, i) => (
+            {[...attending].sort((a, b) => {
+              const aGuest = memberMap[a.userId!]?.role === 'guest' ? 1 : 0
+              const bGuest = memberMap[b.userId!]?.role === 'guest' ? 1 : 0
+              return aGuest - bGuest
+            }).map((a, i) => (
               <li key={a.userId ?? i} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded p-3 shadow-sm dark:shadow-none dark:ring-1 dark:ring-gray-700">
                 <span className="dark:text-gray-200">{getAttendeeName(a)}</span>
-                {isVotingOpen && appUser && a.userId !== appUser.uid && (
+                {isVotingOpen && appUser && a.userId !== appUser.uid && memberMap[a.userId!]?.role !== 'guest' && (
                   <button
                     onClick={() => handleVote(a.userId!)}
-                    disabled={!!myVote}
                     className={`text-sm px-3 py-1 rounded-full ${
                       myVote === a.userId
                         ? 'bg-yellow-400 text-black font-bold'
-                        : myVote
-                        ? 'bg-gray-100 text-gray-400'
-                        : 'bg-blue-900 text-white'
+                        : 'bg-blue-900 dark:bg-amber-500 text-white'
                     }`}
                   >
-                    {myVote === a.userId ? 'MOM 투표함' : 'MOM 투표'}
+                    {myVote === a.userId ? '✓ 투표함' : 'MOM 투표'}
                   </button>
                 )}
               </li>

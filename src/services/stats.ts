@@ -107,3 +107,9 @@ export async function tallyMatch(matchId: string): Promise<void> {
 export async function triggerMatchTally(matchId: string): Promise<void> {
   await tallyMatch(matchId)
 }
+
+export async function serverTally(matchId: string): Promise<void> {
+  const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001'
+  const res = await fetch(`${serverUrl}/stats/tally/${matchId}`, { method: 'POST' })
+  if (!res.ok) throw new Error('Tally failed')
+}

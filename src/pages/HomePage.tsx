@@ -3,20 +3,27 @@ import { Link } from 'react-router-dom'
 import { getMatchesByMonth } from '../services/matches'
 import { calculateAllStats } from '../services/userStats'
 import { getAllUsers } from '../services/users'
+import { getUserAttendances } from '../services/attendances'
+import { getMyVote } from '../services/votes'
+import { useAuth } from '../hooks/useAuth'
 import { Match, UserStats } from '../types'
 
+type VotingMatch = Match & { voted: boolean }
+
 export default function HomePage() {
+  const { appUser } = useAuth()
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([])
+  const [votingMatches, setVotingMatches] = useState<VotingMatch[]>([])
   const [topStats, setTopStats] = useState<(UserStats & { name: string })[]>([])
 
   useEffect(() => {
     const now = new Date()
-    const months: { year: number; month: number }[] = []
+    const futureMths: { year: number; month: number }[] = []
     for (let i = 0; i < 3; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
-      months.push({ year: d.getFullYear(), month: d.getMonth() + 1 })
+      futureMths.push({ year: d.getFullYear(), month: d.getMonth() + 1 })
     }
-    Promise.all(months.map(({ year, month }) => getMatchesByMonth(year, month))).then((results) => {
+    Promise.all(futureMths.map(({ year, month }) => getMatchesByMonth(year, month))).then((results) => {
       const upcoming = results
         .flat()
         .filter((m) => m.status !== 'cancelled' && m.date >= now)
@@ -26,15 +33,92 @@ export default function HomePage() {
     })
 
     Promise.all([calculateAllStats(), getAllUsers()]).then(([stats, users]) => {
-      const memberMap = Object.fromEntries(users.map((m) => [m.uid, m.name]))
+      const memberMap = Object.fromEntries(
+        users.filter((u) => u.role !== 'guest').map((m) => [m.uid, m.name])
+      )
       setTopStats(
-        stats.slice(0, 5).map((s) => ({ ...s, name: memberMap[s.userId] ?? s.userId }))
+        stats
+          .filter((s) => memberMap[s.userId])
+          .slice(0, 5)
+          .map((s) => ({ ...s, name: memberMap[s.userId] }))
       )
     })
   }, [])
 
+  useEffect(() => {
+    if (!appUser) { setVotingMatches([]); return }
+
+    const now = new Date()
+    const pastMths: { year: number; month: number }[] = []
+    for (let i = 2; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      pastMths.push({ year: d.getFullYear(), month: d.getMonth() + 1 })
+    }
+
+    Promise.all([
+      Promise.all(pastMths.map(({ year, month }) => getMatchesByMonth(year, month))),
+      getUserAttendances(appUser.uid),
+    ]).then(async ([monthResults, attendances]) => {
+      const allMatches = monthResults.flat()
+      const attendedIds = new Set(
+        attendances.filter((a) => a.status === 'attending').map((a) => a.matchId)
+      )
+      const active = allMatches.filter(
+        (m) =>
+          m.status === 'completed' &&
+          !m.voteTallied &&
+          m.voteDeadline &&
+          m.voteDeadline > now &&
+          attendedIds.has(m.id)
+      )
+      const withVoteStatus = await Promise.all(
+        active.map(async (m) => {
+          const vote = await getMyVote(m.id, appUser.uid)
+          return { ...m, voted: vote !== null }
+        })
+      )
+      setVotingMatches(withVoteStatus.sort((a, b) => a.date.getTime() - b.date.getTime()))
+    })
+  }, [appUser])
+
   return (
     <div className="space-y-6">
+      {/* MOM 투표 배너 */}
+      {votingMatches.length > 0 && (
+        <section>
+          <h2 className="text-lg font-bold mb-3 dark:text-white">MOM 투표</h2>
+          <ul className="space-y-2">
+            {votingMatches.map((m) => (
+              <li key={m.id}>
+                <Link
+                  to={`/match/${m.id}`}
+                  className="flex items-center justify-between bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 rounded-lg p-3 hover:shadow-md"
+                >
+                  <div>
+                    <p className="font-medium dark:text-white">
+                      {m.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{m.venue}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-yellow-400 text-yellow-900 dark:bg-yellow-500 dark:text-black">
+                      투표진행중
+                    </span>
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                      m.voted
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                    }`}>
+                      {m.voted ? '투표 완료' : '투표 전'}
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section>
         <h2 className="text-lg font-bold mb-3 dark:text-white">다가오는 경기</h2>
         {upcomingMatches.length === 0 ? (

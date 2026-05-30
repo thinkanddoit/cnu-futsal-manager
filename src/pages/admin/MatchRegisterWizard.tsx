@@ -31,7 +31,6 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
   const { appUser } = useAuth()
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [members, setMembers] = useState<AppUser[]>([])
-  const [pastGuests, setPastGuests] = useState<AppUser[]>([])
   const [timeHistory, setTimeHistory] = useState<string[]>([])
   const [venueHistory, setVenueHistory] = useState<string[]>([])
   const [basicInfo, setBasicInfo] = useState<BasicInfo>(() => {
@@ -43,7 +42,6 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
     return { date: '', time: '', venue: '' }
   })
   const [selectedUids, setSelectedUids] = useState<string[]>([])
-  const [selectedGuestUids, setSelectedGuestUids] = useState<string[]>([])
   const [guests, setGuests] = useState<string[]>([])
   const [guestInput, setGuestInput] = useState('')
   const [guestError, setGuestError] = useState('')
@@ -51,7 +49,7 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
   const [submitting, setSubmitting] = useState(false)
   const [originalAttendingUids, setOriginalAttendingUids] = useState<Set<string>>(new Set())
 
-  const totalCount = selectedUids.length + selectedGuestUids.length + guests.length
+  const totalCount = selectedUids.length + guests.length
   const isPast = basicInfo.date && basicInfo.time
     ? isMatchInPast(basicInfo.date, basicInfo.time)
     : false
@@ -64,9 +62,7 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
       editMatch ? getMomResult(editMatch.id) : Promise.resolve(null),
     ]).then(([users, matches, attendances, momResult]) => {
       const memberUsers = users.filter((u) => u.role === 'member' || u.role === 'admin')
-      const guestUsers = users.filter((u) => u.role === 'guest')
       setMembers(memberUsers)
-      setPastGuests(guestUsers)
 
       const times = [...new Set(matches.map((m) => m.time).filter(Boolean))]
       const venues = [...new Set(matches.map((m) => m.venue).filter(Boolean))]
@@ -80,9 +76,7 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
           .filter(Boolean)
         setOriginalAttendingUids(new Set(attendingUids))
         const memberUidSet = new Set(memberUsers.map((m) => m.uid))
-        const guestUidSet = new Set(guestUsers.map((g) => g.uid))
         setSelectedUids(attendingUids.filter((uid) => memberUidSet.has(uid)))
-        setSelectedGuestUids(attendingUids.filter((uid) => guestUidSet.has(uid)))
       }
 
       if (momResult) {
@@ -97,21 +91,11 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
     )
   }
 
-  function togglePastGuest(uid: string) {
-    setSelectedGuestUids((prev) =>
-      prev.includes(uid) ? prev.filter((u) => u !== uid) : [...prev, uid]
-    )
-  }
-
   function addGuest() {
     const name = guestInput.trim()
     if (!name) return
     if (members.some((m) => m.name === name)) {
       setGuestError('이미 회원입니다. 위 회원 목록에서 선택해주세요.')
-      return
-    }
-    if (pastGuests.some((g) => g.name === name)) {
-      setGuestError('이전 비회원 목록에 있습니다. 위에서 선택해주세요.')
       return
     }
     if (guests.includes(name)) {
@@ -151,9 +135,9 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
     return null
   }
 
+  const memberAttendees = members.filter((m) => selectedUids.includes(m.uid)).map((m) => ({ id: m.uid, label: m.name }))
   const allAttendees = [
-    ...members.filter((m) => selectedUids.includes(m.uid)).map((m) => ({ id: m.uid, label: m.name })),
-    ...pastGuests.filter((g) => selectedGuestUids.includes(g.uid)).map((g) => ({ id: g.uid, label: g.name })),
+    ...memberAttendees,
     ...guests.map((g) => ({ id: `guest_${g}`, label: g })),
   ]
 
@@ -173,7 +157,7 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
         guestUidMap[`guest_${name}`] = await getOrCreateGuestUser(name)
       }
 
-      const allUids = [...selectedUids, ...selectedGuestUids, ...Object.values(guestUidMap)]
+      const allUids = [...selectedUids, ...Object.values(guestUidMap)]
       await saveMatchAttendances(matchId, allUids)
 
       if (isPast && (mom.first.length > 0 || mom.second.length > 0)) {
@@ -207,7 +191,6 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
 
       const finalAttendingUids = new Set([
         ...selectedUids,
-        ...selectedGuestUids,
         ...Object.values(newGuestUidMap),
       ])
       const toAdd = [...finalAttendingUids].filter((uid) => !originalAttendingUids.has(uid))
@@ -358,34 +341,9 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
                 </div>
               </div>
 
-              {/* 이전 비회원 */}
-              {pastGuests.length > 0 && (
-                <div className="border-t dark:border-gray-700 pt-3">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">이전 비회원</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {pastGuests.map((g) => {
-                      const selected = selectedGuestUids.includes(g.uid)
-                      return (
-                        <button
-                          key={g.uid}
-                          onClick={() => togglePastGuest(g.uid)}
-                          className={`flex items-center gap-2 p-2.5 rounded-lg border text-sm text-left transition-colors ${
-                            selected
-                              ? 'border-yellow-400 dark:border-amber-400 bg-yellow-50 dark:bg-amber-900/20 font-semibold dark:text-white'
-                              : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-200'
-                          }`}
-                        >
-                          {selected ? '✓' : '○'} {g.name}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* 새 비회원 입력 */}
+              {/* 용병 추가 */}
               <div className="border-t dark:border-gray-700 pt-3">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">새 비회원 추가</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">용병 추가</p>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -409,7 +367,7 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
                 <div className="mt-2 space-y-1.5">
                   {guests.map((g) => (
                     <div key={g} className="flex items-center justify-between bg-yellow-50 dark:bg-amber-900/20 border border-yellow-200 dark:border-amber-800 rounded-lg px-3 py-2 text-sm dark:text-gray-200">
-                      <span>{g} <span className="text-xs text-yellow-700 dark:text-amber-400">(신규)</span></span>
+                      <span>{g} <span className="text-xs text-yellow-700 dark:text-amber-400">(용병)</span></span>
                       <button onClick={() => removeGuest(g)} className="text-red-400 text-lg leading-none">×</button>
                     </div>
                   ))}
@@ -447,7 +405,7 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
                           )}
                         </div>
                         <div className="grid grid-cols-3 gap-2">
-                          {allAttendees.map(({ id, label: name }) => {
+                          {memberAttendees.map(({ id, label: name }) => {
                             const selected = mom[rank].includes(id)
                             const takenByOther = isTakenByOther(rank, id)
                             const takenLabel = getRankLabel(id)
