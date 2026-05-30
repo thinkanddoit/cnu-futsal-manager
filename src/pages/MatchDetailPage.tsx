@@ -100,16 +100,18 @@ export default function MatchDetailPage() {
     }
   }
 
-  function handleKakaoShare() {
+  async function handleShare() {
     const attendingNames = attending
       .map((a) => a.userId ? (memberMap[a.userId]?.name ?? '알 수 없음') : '알 수 없음')
       .join(', ')
+    const text = `⚽ CNU 풋살 경기 안내\n\n📅 ${match!.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}${match!.time ? ' ' + match!.time : ''}\n📍 ${match!.venue}\n👥 참석 (${attending.length}명): ${attendingNames}`
 
-    window.Kakao.Share.sendDefault({
-      objectType: 'text',
-      text: `⚽ CNU 풋살 경기 안내\n\n📅 ${match!.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}${match!.time ? ' ' + match!.time : ''}\n📍 ${match!.venue}\n👥 참석 (${attending.length}명): ${attendingNames}`,
-      link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
-    })
+    if (navigator.share) {
+      await navigator.share({ text })
+    } else {
+      await navigator.clipboard.writeText(text)
+      alert('클립보드에 복사되었습니다.')
+    }
   }
 
   function getAttendeeName(a: Attendance): string {
@@ -231,7 +233,7 @@ export default function MatchDetailPage() {
 
         {!isCompleted && (
           <button
-            onClick={handleKakaoShare}
+            onClick={handleShare}
             className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-lg"
           >
             카카오톡으로 참석자 공유
