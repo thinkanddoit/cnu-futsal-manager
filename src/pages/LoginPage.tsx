@@ -13,19 +13,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (appUser) {
-      if (!appUser.nameConfirmed) {
+      if (appUser.nameConfirmed === false) {
         navigate('/register', { replace: true })
       } else {
         navigate(appUser.role === 'pending' ? '/pending' : '/', { replace: true })
       }
     }
   }, [appUser, navigate])
-
-  // Render.com 무료 플랜 cold start 방지 — 페이지 진입 시 서버 미리 깨움
-  useEffect(() => {
-    const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001'
-    fetch(`${serverUrl}/health`).catch(() => {})
-  }, [])
 
   useEffect(() => {
     const code = searchParams.get('code')
@@ -40,8 +34,8 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-      <h1 className="text-2xl font-bold">CNU 풋살</h1>
-      {error && <p className="text-red-500">{error}</p>}
+      <h1 className="text-2xl font-bold dark:text-white">CNU 풋살</h1>
+      {error && <p className="text-red-500 dark:text-red-400">{error}</p>}
       {loading ? (
         <p>로그인 중...</p>
       ) : (

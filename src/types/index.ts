@@ -1,13 +1,12 @@
-export type UserRole = 'pending' | 'member' | 'admin'
+export type UserRole = 'pending' | 'member' | 'admin' | 'guest'
 
 export interface AppUser {
   uid: string
   name: string
   kakaoId: string
-  profileImage: string
   role: UserRole
   createdAt: Date
-  nameConfirmed: boolean
+  nameConfirmed?: boolean
 }
 
 export type MatchStatus = 'voting' | 'confirmed' | 'cancelled' | 'completed'
@@ -22,19 +21,19 @@ export interface Match {
   voteDeadline: Date | null
   voteTallied: boolean
   createdBy: string
+
 }
 
 export type AttendanceStatus = 'attending' | 'absent'
 
 export interface Attendance {
   matchId: string
-  userId: string | null   // 비회원은 null
-  guestName?: string      // 비회원 이름
+  userId: string | null
   status: AttendanceStatus
   updatedAt: Date
 }
 
-export interface MvpResult {
+export interface MomResult {
   matchId: string
   first: string[]    // uid 또는 guestName 배열
   second: string[]
@@ -42,10 +41,18 @@ export interface MvpResult {
   createdAt: Date
 }
 
-export interface MvpVote {
+export interface MomVote {
   matchId: string
   voterId: string
   votedFor: string
+  createdAt: Date
+}
+
+export interface MatchPhoto {
+  id: string
+  matchId: string
+  url: string
+  uploadedBy: string
   createdAt: Date
 }
 
@@ -53,9 +60,9 @@ export interface UserStats {
   userId: string
   totalPoints: number
   attendanceCount: number
-  mvp1st: number
-  mvp2nd: number
-  mvp3rd: number
+  mom1st: number
+  mom2nd: number
+  mom3rd: number
 }
 
 export interface RankedUser {
