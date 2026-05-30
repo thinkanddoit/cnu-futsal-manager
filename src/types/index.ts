@@ -3,7 +3,7 @@ export type UserRole = 'pending' | 'member' | 'admin' | 'guest'
 export interface AppUser {
   uid: string
   name: string
-  kakaoId: string
+  kakaoId?: string
   role: UserRole
   createdAt: Date
   nameConfirmed?: boolean

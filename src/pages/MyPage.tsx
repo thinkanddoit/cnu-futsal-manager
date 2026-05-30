@@ -4,7 +4,7 @@ import { calculateUserStats } from '../services/userStats'
 import { getUserAttendances } from '../services/attendances'
 import { getAllMatches } from '../services/matches'
 import { UserStats, Attendance, Match } from '../types'
-import { signOut } from '../services/auth'
+import { signOut, changePassword } from '../services/auth'
 import { useNavigate } from 'react-router-dom'
 
 export default function MyPage() {
@@ -12,6 +12,14 @@ export default function MyPage() {
   const navigate = useNavigate()
   const [stats, setStats] = useState<UserStats | null>(null)
   const [recentAttendances, setRecentAttendances] = useState<(Attendance & { match?: Match })[]>([])
+
+  // Password change state
+  const [currentPw, setCurrentPw] = useState('')
+  const [newPw, setNewPw] = useState('')
+  const [confirmPw, setConfirmPw] = useState('')
+  const [pwError, setPwError] = useState('')
+  const [pwSuccess, setPwSuccess] = useState('')
+  const [pwLoading, setPwLoading] = useState(false)
 
   useEffect(() => {
     if (!appUser) return
@@ -37,7 +45,42 @@ export default function MyPage() {
     navigate('/login')
   }
 
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault()
+    setPwError('')
+    setPwSuccess('')
+
+    if (currentPw.length !== 4 || newPw.length !== 4 || confirmPw.length !== 4) {
+      setPwError('모든 PIN은 4자리여야 합니다.')
+      return
+    }
+    if (newPw !== confirmPw) {
+      setPwError('새 비밀번호가 일치하지 않습니다.')
+      return
+    }
+
+    setPwLoading(true)
+    try {
+      await changePassword(currentPw, newPw)
+      setPwSuccess('변경되었습니다.')
+      setCurrentPw('')
+      setNewPw('')
+      setConfirmPw('')
+    } catch (e: any) {
+      if (e?.message === 'invalid_credentials') {
+        setPwError('현재 비밀번호가 올바르지 않습니다.')
+      } else {
+        setPwError('변경에 실패했습니다. 다시 시도해주세요.')
+      }
+    } finally {
+      setPwLoading(false)
+    }
+  }
+
   if (!appUser) return null
+
+  const pinInputClass =
+    'border dark:border-gray-600 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 w-full'
 
   return (
     <div className="space-y-6">
@@ -63,6 +106,51 @@ export default function MyPage() {
           ))}
         </div>
       )}
+
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none dark:ring-1 dark:ring-gray-700 p-4">
+        <h2 className="font-semibold mb-3 dark:text-white">비밀번호 변경</h2>
+        <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
+          <input
+            type="password"
+            value={currentPw}
+            onChange={(e) => setCurrentPw(e.target.value)}
+            placeholder="현재 PIN (4자리)"
+            maxLength={4}
+            pattern="[0-9]*"
+            inputMode="numeric"
+            className={pinInputClass}
+          />
+          <input
+            type="password"
+            value={newPw}
+            onChange={(e) => setNewPw(e.target.value)}
+            placeholder="새 PIN (4자리)"
+            maxLength={4}
+            pattern="[0-9]*"
+            inputMode="numeric"
+            className={pinInputClass}
+          />
+          <input
+            type="password"
+            value={confirmPw}
+            onChange={(e) => setConfirmPw(e.target.value)}
+            placeholder="새 PIN 확인"
+            maxLength={4}
+            pattern="[0-9]*"
+            inputMode="numeric"
+            className={pinInputClass}
+          />
+          {pwError && <p className="text-red-500 dark:text-red-400 text-sm">{pwError}</p>}
+          {pwSuccess && <p className="text-green-600 dark:text-green-400 text-sm">{pwSuccess}</p>}
+          <button
+            type="submit"
+            disabled={pwLoading || !currentPw || !newPw || !confirmPw}
+            className="bg-blue-900 dark:bg-amber-500 text-white font-semibold py-2.5 rounded-lg disabled:opacity-50 text-sm"
+          >
+            {pwLoading ? '변경 중...' : '변경'}
+          </button>
+        </form>
+      </div>
 
       <div>
         <h2 className="font-semibold mb-2 dark:text-white">최근 참석 내역</h2>

@@ -47,5 +47,9 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    match /userCredentials/{uid} {
+      allow read, write: if false; // server admin SDK only
+    }
   }
 }

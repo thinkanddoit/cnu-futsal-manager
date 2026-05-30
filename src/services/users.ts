@@ -10,6 +10,7 @@ import {
   Timestamp,
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { auth } from '../firebase'
 import { AppUser, UserRole } from '../types'
 import { linkGuestAttendances } from './attendances'
 
@@ -20,7 +21,7 @@ function docToUser(id: string, data: Record<string, any>): AppUser {
     kakaoId: data.kakaoId,
     role: data.role as UserRole,
     createdAt: data.createdAt?.toDate() ?? new Date(),
-    nameConfirmed: data.nameConfirmed ?? false,
+    nameConfirmed: data.nameConfirmed,
   }
 }
 
@@ -55,9 +56,7 @@ export async function getOrCreateGuestUser(name: string): Promise<string> {
   const ref = await addDoc(collection(db, 'users'), {
     name,
     role: 'guest',
-    kakaoId: '',
     createdAt: Timestamp.now(),
-    nameConfirmed: true,
   })
   return ref.id
 }
@@ -78,4 +77,23 @@ export async function setUserRole(uid: string, role: UserRole): Promise<void> {
 
 export async function updateUserName(uid: string, name: string): Promise<void> {
   await updateDoc(doc(db, 'users', uid), { name, nameConfirmed: true })
+}
+
+export async function createMember(name: string): Promise<string> {
+  const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001'
+  const idToken = await auth.currentUser?.getIdToken()
+  if (!idToken) throw new Error('not_authenticated')
+
+  const res = await fetch(`${serverUrl}/users/create`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${idToken}`,
+    },
+    body: JSON.stringify({ name }),
+  })
+  if (res.status === 403) throw new Error('forbidden')
+  if (!res.ok) throw new Error('Failed to create member')
+  const { uid } = (await res.json()) as { uid: string }
+  return uid
 }
