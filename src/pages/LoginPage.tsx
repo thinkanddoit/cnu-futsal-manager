@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { redirectToKakaoLogin, loginWithKakaoCode } from '../services/auth'
 import { useAuth } from '../hooks/useAuth'
+import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 
 export default function LoginPage() {
   const [searchParams] = useSearchParams()
@@ -37,7 +38,7 @@ export default function LoginPage() {
       <h1 className="text-2xl font-bold dark:text-white">CNU 풋살</h1>
       {error && <p className="text-red-500 dark:text-red-400">{error}</p>}
       {loading ? (
-        <p>로그인 중...</p>
+        <LoadingSpinner />
       ) : (
         <button
           onClick={redirectToKakaoLogin}
