@@ -98,10 +98,16 @@ export async function updateMatchStatus(
 }
 
 export async function deleteMatch(matchId: string): Promise<void> {
-  const attendSnap = await getDocs(
-    query(collection(db, 'attendances'), where('matchId', '==', matchId))
-  )
-  await Promise.all(attendSnap.docs.map((d) => deleteDoc(d.ref)))
+  const [attendSnap, votesSnap, resultsSnap] = await Promise.all([
+    getDocs(query(collection(db, 'attendances'), where('matchId', '==', matchId))),
+    getDocs(query(collection(db, 'mvpVotes'), where('matchId', '==', matchId))),
+    getDocs(query(collection(db, 'mvpResults'), where('matchId', '==', matchId))),
+  ])
+  await Promise.all([
+    ...attendSnap.docs.map((d) => deleteDoc(d.ref)),
+    ...votesSnap.docs.map((d) => deleteDoc(d.ref)),
+    ...resultsSnap.docs.map((d) => deleteDoc(d.ref)),
+  ])
   await deleteDoc(doc(db, 'matches', matchId))
 }
 

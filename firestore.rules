@@ -43,12 +43,13 @@ service cloud.firestore {
       allow update: if isMember() &&
         request.auth.uid == resource.data.voterId &&
         request.auth.uid != request.resource.data.votedFor;
-      allow delete: if false;
+      allow delete: if isAdmin();
     }
 
     match /mvpResults/{docId} {
       allow read: if true;
-      allow write: if false;
+      allow create, update: if false;
+      allow delete: if isAdmin();
     }
 
     match /userStats/{uid} {
