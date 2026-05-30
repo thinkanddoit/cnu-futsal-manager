@@ -25,15 +25,24 @@ export default function RankingsPage() {
   useEffect(() => {
     Promise.all([calculateAllStats(), getAllUsers()]).then(([stats, users]) => {
       const userMap = Object.fromEntries(users.map((u) => [u.uid, u]))
+      const statsMap = Object.fromEntries(stats.map((s) => [s.userId, s]))
+
+      const allStats = users.filter((u) => u.role !== 'guest').map((u) => statsMap[u.uid] ?? {
+        userId: u.uid,
+        totalPoints: 0,
+        attendanceCount: 0,
+        mom1st: 0,
+        mom2nd: 0,
+        mom3rd: 0,
+      }).sort((a, b) => b.totalPoints - a.totalPoints)
+
       let rank = 1
       const ranked: RankedRow[] = []
-      for (let i = 0; i < stats.length; i++) {
-        if (i > 0 && stats[i].totalPoints < stats[i - 1].totalPoints) rank = i + 1
-        const user = userMap[stats[i].userId]
-        if (!user) continue
+      for (let i = 0; i < allStats.length; i++) {
+        if (i > 0 && allStats[i].totalPoints < allStats[i - 1].totalPoints) rank = i + 1
         ranked.push({
-          ...stats[i],
-          name: user.name,
+          ...allStats[i],
+          name: userMap[allStats[i].userId]?.name ?? '알 수 없음',
           rank,
         })
       }

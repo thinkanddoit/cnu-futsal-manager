@@ -40,7 +40,10 @@ service cloud.firestore {
       allow create: if isMember() &&
         request.auth.uid == request.resource.data.voterId &&
         request.auth.uid != request.resource.data.votedFor;
-      allow update, delete: if false;
+      allow update: if isMember() &&
+        request.auth.uid == resource.data.voterId &&
+        request.auth.uid != request.resource.data.votedFor;
+      allow delete: if false;
     }
 
     match /mvpResults/{docId} {

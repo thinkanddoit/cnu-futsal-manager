@@ -47,6 +47,10 @@ export default function AdminMembersPage() {
     e.preventDefault()
     const name = newName.trim()
     if (!name) return
+    if (members.some((m) => m.name === name)) {
+      setCreateError(`'${name}'은(는) 이미 존재하는 이름입니다.`)
+      return
+    }
     setCreateError('')
     setCreating(true)
     try {
@@ -54,12 +58,8 @@ export default function AdminMembersPage() {
       const newUser: AppUser = { uid, name, role: 'member', createdAt: new Date() }
       setMembers((prev) => [...prev, newUser])
       setNewName('')
-    } catch (e: any) {
-      if (e?.message === 'duplicate_name') {
-        setCreateError(`'${name}'은(는) 이미 존재하는 이름입니다.`)
-      } else {
-        setCreateError('멤버 추가에 실패했습니다.')
-      }
+    } catch {
+      setCreateError('멤버 추가에 실패했습니다.')
     } finally {
       setCreating(false)
     }
@@ -69,7 +69,10 @@ export default function AdminMembersPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold dark:text-white">회원 관리</h1>
+      <div className="flex items-baseline gap-2">
+        <h1 className="text-xl font-bold dark:text-white">회원 관리</h1>
+        <span className="text-sm text-gray-400 dark:text-gray-500">총 {members.length}명</span>
+      </div>
 
       {/* 멤버 추가 */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none dark:ring-1 dark:ring-gray-700 p-4">
