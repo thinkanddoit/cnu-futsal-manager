@@ -3,6 +3,10 @@ import * as bcrypt from 'bcryptjs'
 
 export async function createMemberUser(name: string): Promise<string> {
   const db = admin.firestore()
+
+  const existing = await db.collection('users').where('name', '==', name).limit(1).get()
+  if (!existing.empty) throw Object.assign(new Error('duplicate_name'), { status: 409 })
+
   const newUserRef = db.collection('users').doc()
 
   await newUserRef.set({
