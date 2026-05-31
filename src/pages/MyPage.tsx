@@ -80,16 +80,26 @@ export default function MyPage() {
       <div>
         <h2 className="font-semibold mb-2 dark:text-white">최근 참석 내역</h2>
         <ul className="space-y-2">
-          {recentAttendances.map((a) => (
-            <li key={a.matchId} className="bg-white dark:bg-gray-800 rounded p-3 shadow-sm dark:shadow-none dark:ring-1 dark:ring-gray-700 flex justify-between items-center">
-              <span className="text-sm dark:text-gray-300">
-                {a.match?.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}
-              </span>
-              <span className={`text-sm font-medium ${a.status === 'attending' ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}`}>
-                {a.status === 'attending' ? '참석' : '불참'}
-              </span>
-            </li>
-          ))}
+          {recentAttendances.map((a) => {
+            const isCompleted = a.match?.status === 'completed'
+            return (
+              <li key={a.matchId} className="bg-white dark:bg-gray-800 rounded p-3 shadow-sm dark:shadow-none dark:ring-1 dark:ring-gray-700 flex justify-between items-center">
+                <div>
+                  <p className="text-sm dark:text-gray-300">
+                    {a.match?.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">{a.match?.venue}</p>
+                </div>
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                  isCompleted
+                    ? 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                    : 'bg-blue-50 text-blue-700 dark:bg-amber-900/30 dark:text-amber-300'
+                }`}>
+                  {isCompleted ? '완료' : '참여 예정'}
+                </span>
+              </li>
+            )
+          })}
         </ul>
       </div>
     </div>
