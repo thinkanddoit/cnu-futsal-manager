@@ -1,18 +1,26 @@
 import { useEffect, useState } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { getDocs, collection } from 'firebase/firestore'
+import { db } from '../firebase'
 import { useAuth } from '../hooks/useAuth'
 import { calculateUserStats } from '../services/userStats'
 import { getUserAttendances } from '../services/attendances'
 import { getAllMatches } from '../services/matches'
+import { computeMomResultFromVotes } from '../services/votes'
 import { UserStats, Attendance, Match } from '../types'
 import { signOut } from '../services/auth'
-import { useNavigate, useLocation } from 'react-router-dom'
+
+type AttendanceRow = Attendance & { match?: Match }
+
+const MOM_EMOJI: Record<1 | 2 | 3, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
 export default function MyPage() {
   const { appUser } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [stats, setStats] = useState<UserStats | null>(null)
-  const [recentAttendances, setRecentAttendances] = useState<(Attendance & { match?: Match })[]>([])
+  const [recentAttendances, setRecentAttendances] = useState<AttendanceRow[]>([])
+  const [momMap, setMomMap] = useState<Record<string, 1 | 2 | 3>>({})
   const pwChanged = location.state?.pwChanged === true
 
   useEffect(() => {
@@ -22,15 +30,45 @@ export default function MyPage() {
     Promise.all([
       getUserAttendances(appUser.uid),
       getAllMatches(),
-    ]).then(([attendances, allMatches]) => {
+    ]).then(async ([attendances, allMatches]) => {
       const matchMap = Object.fromEntries(allMatches.map((m) => [m.id, m]))
-      setRecentAttendances(
-        attendances
-          .filter((a) => a.status === 'attending')
-          .map((a) => ({ ...a, match: matchMap[a.matchId] }))
-          .filter((a) => a.match)
-          .sort((a, b) => b.match!.date.getTime() - a.match!.date.getTime())
+      const rows: AttendanceRow[] = attendances
+        .filter((a) => a.status === 'attending')
+        .map((a) => ({ ...a, match: matchMap[a.matchId] }))
+        .filter((a) => a.match)
+        .sort((a, b) => b.match!.date.getTime() - a.match!.date.getTime())
+
+      setRecentAttendances(rows)
+
+      // MOM 조회
+      const uid = appUser.uid
+      const result: Record<string, 1 | 2 | 3> = {}
+
+      // mvpResults에서 확인
+      const resultsSnap = await getDocs(collection(db, 'mvpResults'))
+      const coveredByResults = new Set<string>()
+      for (const d of resultsSnap.docs) {
+        const data = d.data()
+        const mid = data.matchId as string
+        coveredByResults.add(mid)
+        if (data.first?.includes(uid)) result[mid] = 1
+        else if (data.second?.includes(uid)) result[mid] = 2
+        else if (data.third?.includes(uid)) result[mid] = 3
+      }
+
+      // mvpResults 없는 집계완료 경기는 투표에서 계산
+      const talliedWithoutResults = rows.filter(
+        (a) => a.match?.voteTallied && !coveredByResults.has(a.matchId)
       )
+      await Promise.all(talliedWithoutResults.map(async (a) => {
+        const vr = await computeMomResultFromVotes(a.matchId)
+        if (!vr) return
+        if (vr.first.includes(uid)) result[a.matchId] = 1
+        else if (vr.second.includes(uid)) result[a.matchId] = 2
+        else if (vr.third.includes(uid)) result[a.matchId] = 3
+      }))
+
+      setMomMap(result)
     })
   }, [appUser])
 
@@ -82,21 +120,32 @@ export default function MyPage() {
         <ul className="space-y-2">
           {recentAttendances.map((a) => {
             const isCompleted = a.match?.status === 'completed'
+            const mom = momMap[a.matchId]
             return (
-              <li key={a.matchId} className="bg-white dark:bg-gray-800 rounded p-3 shadow-sm dark:shadow-none dark:ring-1 dark:ring-gray-700 flex justify-between items-center">
-                <div>
-                  <p className="text-sm dark:text-gray-300">
-                    {a.match?.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">{a.match?.venue}</p>
-                </div>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                  isCompleted
-                    ? 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
-                    : 'bg-blue-50 text-blue-700 dark:bg-amber-900/30 dark:text-amber-300'
-                }`}>
-                  {isCompleted ? '완료' : '참여 예정'}
-                </span>
+              <li key={a.matchId}>
+                <Link
+                  to={`/match/${a.matchId}`}
+                  className="bg-white dark:bg-gray-800 rounded p-3 shadow-sm dark:shadow-none dark:ring-1 dark:ring-gray-700 flex justify-between items-center"
+                >
+                  <div>
+                    <p className="text-sm dark:text-gray-300">
+                      {a.match?.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{a.match?.venue}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {mom && (
+                      <span className="text-base">{MOM_EMOJI[mom]}</span>
+                    )}
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      isCompleted
+                        ? 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                        : 'bg-blue-50 text-blue-700 dark:bg-amber-900/30 dark:text-amber-300'
+                    }`}>
+                      {isCompleted ? '완료' : '참여 예정'}
+                    </span>
+                  </div>
+                </Link>
               </li>
             )
           })}
