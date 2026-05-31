@@ -41,6 +41,7 @@ export default function MatchDetailPage() {
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [showShareReminder, setShowShareReminder] = useState(false)
+  const [pendingStatusChange, setPendingStatusChange] = useState<'attending' | 'absent' | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -110,6 +111,7 @@ export default function MatchDetailPage() {
     if (!appUser || !id) return
     const next = myAttendance?.status === 'attending' ? 'absent' : 'attending'
     await setAttendance(id, appUser.uid, next)
+    setPendingStatusChange(next)
     setShowShareReminder(true)
   }
 
@@ -152,14 +154,19 @@ export default function MatchDetailPage() {
     }
   }
 
-  function handleKakaoShare() {
+  function handleKakaoShare(changedTo?: 'attending' | 'absent' | null) {
     const attendingNames = attending
       .map((a) => a.userId ? (memberMap[a.userId]?.name ?? '알 수 없음') : '알 수 없음')
       .join(', ')
 
+    const myName = appUser ? (memberMap[appUser.uid]?.name ?? appUser.uid) : ''
+    const changeLine = changedTo && myName
+      ? `\n🔔 ${myName}님이 ${changedTo === 'attending' ? '참석으로 변경' : '불참으로 변경'}했습니다.`
+      : ''
+
     window.Kakao.Share.sendDefault({
       objectType: 'text',
-      text: `⚽ CNU 풋살 경기 안내\n\n📅 ${match!.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}${match!.time ? ' ' + match!.time : ''}\n📍 ${match!.venue}\n👥 참석 (${attending.length}명): ${attendingNames}`,
+      text: `⚽ CNU 풋살 경기 안내${changeLine}\n\n📅 ${match!.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}${match!.time ? ' ' + match!.time : ''}\n📍 ${match!.venue}\n👥 참석 (${attending.length}명): ${attendingNames}`,
       link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
     })
   }
@@ -196,7 +203,7 @@ export default function MatchDetailPage() {
               </p>
             </div>
             <button
-              onClick={() => { handleKakaoShare(); setShowShareReminder(false) }}
+              onClick={() => { handleKakaoShare(pendingStatusChange); setShowShareReminder(false); setPendingStatusChange(null) }}
               className="w-full bg-yellow-400 text-black font-bold py-3 rounded-xl text-sm"
             >
               📤 카카오톡 단체방에 지금 공유하기
@@ -277,7 +284,7 @@ export default function MatchDetailPage() {
         )}
 
         {!isCompleted && (
-          <button onClick={handleKakaoShare} className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-lg">
+          <button onClick={() => handleKakaoShare()} className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-lg">
             카카오톡으로 참석자 공유
           </button>
         )}
