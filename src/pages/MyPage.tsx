@@ -117,6 +117,9 @@ export default function MyPage() {
 
       <div>
         <h2 className="font-semibold mb-2 dark:text-white">최근 참석 내역</h2>
+        {recentAttendances.length === 0 && (
+          <p className="text-sm text-gray-400 dark:text-gray-500">참석한 경기가 없습니다.</p>
+        )}
         <ul className="space-y-2">
           {recentAttendances.map((a) => {
             const isCompleted = a.match?.status === 'completed'
