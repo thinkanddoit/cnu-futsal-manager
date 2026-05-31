@@ -11,12 +11,13 @@ function mergeCounts(a: Record<string, number>, b: Record<string, number>): Reco
   return result
 }
 
-async function getMomCountsFromResults() {
+async function getMomCountsFromResults(allowedMatchIds: Set<string>) {
   const snap = await getDocs(collection(db, 'mvpResults'))
   const first: Record<string, number> = {}
   const second: Record<string, number> = {}
   const third: Record<string, number> = {}
   for (const d of snap.docs) {
+    if (!allowedMatchIds.has(d.data().matchId)) continue
     for (const uid of (d.data().first ?? [])) first[uid] = (first[uid] ?? 0) + 1
     for (const uid of (d.data().second ?? [])) second[uid] = (second[uid] ?? 0) + 1
     for (const uid of (d.data().third ?? [])) third[uid] = (third[uid] ?? 0) + 1
@@ -72,6 +73,12 @@ export async function calculateAllStats(): Promise<UserStats[]> {
   const talliedMatchIds = new Set(
     matchSnap.docs.filter((d) => d.data().voteTallied === true).map((d) => d.id)
   )
+  // 위자드로 수동 등록한 경기(voteDeadline 없음)는 voteTallied 없어도 결과 허용
+  const resultsAllowedMatchIds = new Set(
+    matchSnap.docs
+      .filter((d) => d.data().voteTallied === true || !d.data().voteDeadline)
+      .map((d) => d.id)
+  )
 
   const attendCount: Record<string, number> = {}
   for (const d of attendSnap.docs) {
@@ -81,7 +88,7 @@ export async function calculateAllStats(): Promise<UserStats[]> {
   }
 
   const [fromResults, fromVotes] = await Promise.all([
-    getMomCountsFromResults(),
+    getMomCountsFromResults(resultsAllowedMatchIds),
     getMomCountsFromVotes(talliedMatchIds),
   ])
 
