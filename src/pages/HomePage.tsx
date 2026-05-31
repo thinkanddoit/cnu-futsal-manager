@@ -15,6 +15,8 @@ export default function HomePage() {
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([])
   const [votingMatches, setVotingMatches] = useState<VotingMatch[]>([])
   const [topStats, setTopStats] = useState<(UserStats & { name: string })[]>([])
+  const [loadingMatches, setLoadingMatches] = useState(true)
+  const [loadingStats, setLoadingStats] = useState(true)
 
   useEffect(() => {
     const now = new Date()
@@ -30,6 +32,7 @@ export default function HomePage() {
         .sort((a, b) => a.date.getTime() - b.date.getTime())
         .slice(0, 5)
       setUpcomingMatches(upcoming)
+      setLoadingMatches(false)
     })
 
     Promise.all([calculateAllStats(), getAllUsers()]).then(([stats, users]) => {
@@ -42,6 +45,7 @@ export default function HomePage() {
           .slice(0, 5)
           .map((s) => ({ ...s, name: memberMap[s.userId] }))
       )
+      setLoadingStats(false)
     })
   }, [])
 
@@ -121,7 +125,16 @@ export default function HomePage() {
 
       <section>
         <h2 className="text-lg font-bold mb-3 dark:text-white">다가오는 경기</h2>
-        {upcomingMatches.length === 0 ? (
+        {loadingMatches ? (
+          <ul className="space-y-2">
+            {[...Array(3)].map((_, i) => (
+              <li key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none dark:ring-1 dark:ring-gray-700 p-3 animate-pulse">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/5 mb-2" />
+                <div className="h-3 bg-gray-100 dark:bg-gray-600 rounded w-1/3" />
+              </li>
+            ))}
+          </ul>
+        ) : upcomingMatches.length === 0 ? (
           <p className="text-gray-400 dark:text-gray-400 text-sm">예정된 경기가 없습니다.</p>
         ) : (
           <ul className="space-y-2">
@@ -142,15 +155,27 @@ export default function HomePage() {
 
       <section>
         <h2 className="text-lg font-bold mb-3 dark:text-white">랭킹 TOP 5</h2>
-        <ol className="space-y-2">
-          {topStats.map((s, i) => (
-            <li key={s.userId} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none dark:ring-1 dark:ring-gray-700 p-3">
-              <span className="font-bold text-gray-400 dark:text-gray-400 w-6">{i + 1}</span>
-              <span className="flex-1 dark:text-gray-100">{s.name}</span>
-              <span className="font-semibold text-red-600 dark:text-amber-400">{s.totalPoints}점</span>
-            </li>
-          ))}
-        </ol>
+        {loadingStats ? (
+          <ol className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <li key={i} className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none dark:ring-1 dark:ring-gray-700 p-3 animate-pulse">
+                <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-10" />
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <ol className="space-y-2">
+            {topStats.map((s, i) => (
+              <li key={s.userId} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none dark:ring-1 dark:ring-gray-700 p-3">
+                <span className="font-bold text-gray-400 dark:text-gray-400 w-6">{i + 1}</span>
+                <span className="flex-1 dark:text-gray-100">{s.name}</span>
+                <span className="font-semibold text-red-600 dark:text-amber-400">{s.totalPoints}점</span>
+              </li>
+            ))}
+          </ol>
+        )}
         <Link to="/rankings" className="text-sm text-red-600 dark:text-amber-400 mt-2 inline-block">전체 랭킹 보기 →</Link>
       </section>
     </div>
