@@ -127,7 +127,7 @@ export default function HomePage() {
         <h2 className="text-lg font-bold mb-3 dark:text-white">다가오는 경기</h2>
         {loadingMatches ? (
           <ul className="space-y-2">
-            {[...Array(3)].map((_, i) => (
+            {[...Array(2)].map((_, i) => (
               <li key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none dark:ring-1 dark:ring-gray-700 p-3 animate-pulse">
                 <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/5 mb-2" />
                 <div className="h-3 bg-gray-100 dark:bg-gray-600 rounded w-1/3" />
