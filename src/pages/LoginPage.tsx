@@ -49,7 +49,9 @@ export default function LoginPage() {
       {error && (
         <div className="text-sm text-center space-y-1">
           <p className="text-red-500 dark:text-red-400">{error}</p>
-          {error === '비밀번호가 올바르지 않습니다.' && (
+          {error === '등록되지 않은 이름입니다.' ? (
+            <p className="text-gray-400 dark:text-gray-500">운영진에게 회원 등록을 요청하세요.</p>
+          ) : (
             <p className="text-gray-400 dark:text-gray-500">비밀번호를 모르겠다면 운영진에게 초기화를 요청하세요.</p>
           )}
         </div>
