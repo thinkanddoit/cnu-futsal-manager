@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { calculateAllStats } from '../services/userStats'
 import { getAllUsers } from '../services/users'
 import { UserStats } from '../types'
@@ -18,6 +18,32 @@ function JerseyIcon() {
   )
 }
 
+function RotatingName({ players, nameColor }: { players: RankedRow[]; nameColor: string }) {
+  const [idx, setIdx] = useState(0)
+  const keyRef = useRef(0)
+
+  useEffect(() => {
+    if (players.length <= 1) return
+    const timer = setInterval(() => {
+      keyRef.current += 1
+      setIdx((i) => (i + 1) % players.length)
+    }, 2200)
+    return () => clearInterval(timer)
+  }, [players.length])
+
+  if (players.length === 0) return null
+  return (
+    <div className="overflow-hidden w-full text-center">
+      <p
+        key={keyRef.current}
+        className={`text-sm font-bold mb-0.5 leading-tight slide-in-right ${nameColor}`}
+      >
+        {players[idx].name}
+      </p>
+    </div>
+  )
+}
+
 function Podium({ top3 }: { top3: RankedRow[] }) {
   const byRank = (rank: number) => top3.filter((r) => r.rank === rank)
 
@@ -33,9 +59,7 @@ function Podium({ top3 }: { top3: RankedRow[] }) {
       {players.length > 0 ? (
         <>
           <span className="text-2xl mb-1">{medal}</span>
-          <p className={`text-sm font-bold mb-0.5 text-center leading-tight ${nameColor}`}>
-            {players.map((p) => p.name).join(' · ')}
-          </p>
+          <RotatingName players={players} nameColor={nameColor} />
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{players[0].totalPoints}점</p>
         </>
       ) : (
