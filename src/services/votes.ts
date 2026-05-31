@@ -44,6 +44,32 @@ export async function getVotesForMatch(matchId: string): Promise<MomVote[]> {
   return snap.docs.map((d) => docToVote(d.data()))
 }
 
+export async function computeMomResultFromVotes(matchId: string): Promise<{ first: string[]; second: string[]; third: string[] } | null> {
+  const votes = await getVotesForMatch(matchId)
+  if (votes.length === 0) return null
+
+  const counts: Record<string, number> = {}
+  for (const v of votes) counts[v.votedFor] = (counts[v.votedFor] ?? 0) + 1
+
+  const sorted = Object.entries(counts)
+    .map(([userId, n]) => ({ userId, n }))
+    .sort((a, b) => b.n - a.n)
+
+  const result: { first: string[]; second: string[]; third: string[] } = { first: [], second: [], third: [] }
+  let rank = 1
+  let i = 0
+  while (i < sorted.length && rank <= 3) {
+    const cur = sorted[i].n
+    const tied: string[] = []
+    while (i < sorted.length && sorted[i].n === cur) tied.push(sorted[i++].userId)
+    if (rank === 1) result.first = tied
+    else if (rank === 2) result.second = tied
+    else result.third = tied
+    rank += tied.length
+  }
+  return result
+}
+
 export async function getMyVote(matchId: string, voterId: string): Promise<MomVote | null> {
   const id = voteId(matchId, voterId)
   const snap = await getDocs(query(collection(db, 'mvpVotes'), where('__name__', '==', id)))

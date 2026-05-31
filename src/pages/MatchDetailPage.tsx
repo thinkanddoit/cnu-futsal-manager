@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../hooks/useAuth'
 import { subscribeToMatchAttendances, setAttendance } from '../services/attendances'
-import { castMomVote, getMyVote, getVotesForMatch } from '../services/votes'
+import { castMomVote, getMyVote, getVotesForMatch, computeMomResultFromVotes } from '../services/votes'
 import { getMomResult } from '../services/momResults'
 import { serverTally } from '../services/stats'
 import { getAllUsers } from '../services/users'
@@ -44,12 +44,26 @@ export default function MatchDetailPage() {
 
   useEffect(() => {
     if (!id) return
-    getDoc(doc(db, 'matches', id)).then((snap) => {
-      if (snap.exists()) setMatch(docToMatch(snap.id, snap.data()))
+    getDoc(doc(db, 'matches', id)).then(async (snap) => {
+      if (snap.exists()) {
+        const m = docToMatch(snap.id, snap.data())
+        setMatch(m)
+        // mvpResults 없고 집계 완료된 경기면 votes에서 직접 계산
+        if (m.voteTallied) {
+          const result = await getMomResult(id)
+          if (result) {
+            setMomResult(result)
+          } else {
+            const fromVotes = await computeMomResultFromVotes(id)
+            if (fromVotes) setMomResult({ matchId: id, ...fromVotes, createdAt: new Date() })
+          }
+        } else {
+          getMomResult(id).then(setMomResult)
+        }
+      }
       setLoading(false)
     })
     getAllUsers().then(setMembers)
-    getMomResult(id).then(setMomResult)
     getMatchPhoto(id).then((p) => { setPhoto(p); setPhotoLoading(false) })
   }, [id])
 
@@ -101,7 +115,13 @@ export default function MatchDetailPage() {
         await serverTally(id)
         const snap = await getDoc(doc(db, 'matches', id))
         if (snap.exists()) setMatch(docToMatch(snap.id, snap.data()))
-        getMomResult(id).then(setMomResult)
+        const result = await getMomResult(id)
+        if (result) {
+          setMomResult(result)
+        } else {
+          const fromVotes = await computeMomResultFromVotes(id)
+          if (fromVotes) setMomResult({ matchId: id, ...fromVotes, createdAt: new Date() })
+        }
       }
     }
   }
