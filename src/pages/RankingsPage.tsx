@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { calculateAllStats } from '../services/userStats'
 import { getAllUsers } from '../services/users'
 import { UserStats } from '../types'
@@ -19,27 +19,23 @@ function JerseyIcon() {
 }
 
 function RotatingName({ players, nameColor }: { players: RankedRow[]; nameColor: string }) {
-  const [idx, setIdx] = useState(0)
-  const keyRef = useRef(0)
-
-  useEffect(() => {
-    if (players.length <= 1) return
-    const timer = setInterval(() => {
-      keyRef.current += 1
-      setIdx((i) => (i + 1) % players.length)
-    }, 2200)
-    return () => clearInterval(timer)
-  }, [players.length])
-
   if (players.length === 0) return null
-  return (
-    <div className="overflow-hidden w-full text-center">
-      <p
-        key={keyRef.current}
-        className={`text-sm font-bold mb-0.5 leading-tight slide-in-right ${nameColor}`}
-      >
-        {players[idx].name}
+
+  if (players.length === 1) {
+    return (
+      <p className={`text-sm font-bold mb-0.5 text-center leading-tight ${nameColor}`}>
+        {players[0].name}
       </p>
+    )
+  }
+
+  const label = players.map((p) => p.name).join('  ·  ')
+
+  return (
+    <div className="overflow-hidden w-full">
+      <span className={`text-sm font-bold leading-tight whitespace-nowrap inline-block marquee-names ${nameColor}`}>
+        {label}&nbsp;&nbsp;&nbsp;&nbsp;{label}&nbsp;&nbsp;&nbsp;&nbsp;
+      </span>
     </div>
   )
 }
