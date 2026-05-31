@@ -24,16 +24,17 @@ async function getMomCountsFromResults() {
   return { first, second, third }
 }
 
-async function getMomCountsFromVotes() {
+async function getMomCountsFromVotes(talliedMatchIds: Set<string>) {
   const snap = await getDocs(collection(db, 'mvpVotes'))
   const first: Record<string, number> = {}
   const second: Record<string, number> = {}
   const third: Record<string, number> = {}
 
-  // matchId별 득표수 집계
+  // matchId별 득표수 집계 (집계 완료된 경기만)
   const byMatch: Record<string, Record<string, number>> = {}
   for (const d of snap.docs) {
     const { matchId, votedFor } = d.data()
+    if (!talliedMatchIds.has(matchId)) continue
     if (!byMatch[matchId]) byMatch[matchId] = {}
     byMatch[matchId][votedFor] = (byMatch[matchId][votedFor] ?? 0) + 1
   }
@@ -68,6 +69,9 @@ export async function calculateAllStats(): Promise<UserStats[]> {
   ])
 
   const completedMatchIds = new Set(matchSnap.docs.map((d) => d.id))
+  const talliedMatchIds = new Set(
+    matchSnap.docs.filter((d) => d.data().voteTallied === true).map((d) => d.id)
+  )
 
   const attendCount: Record<string, number> = {}
   for (const d of attendSnap.docs) {
@@ -78,7 +82,7 @@ export async function calculateAllStats(): Promise<UserStats[]> {
 
   const [fromResults, fromVotes] = await Promise.all([
     getMomCountsFromResults(),
-    getMomCountsFromVotes(),
+    getMomCountsFromVotes(talliedMatchIds),
   ])
 
   const mom1st = mergeCounts(fromResults.first, fromVotes.first)
