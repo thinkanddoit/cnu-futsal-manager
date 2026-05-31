@@ -51,7 +51,7 @@ function Podium({ top3 }: { top3: RankedRow[] }) {
     blockColor: string
     nameColor: string
   }) => (
-    <div className="flex flex-col items-center flex-1">
+    <div className="flex flex-col items-center w-full overflow-hidden">
       {players.length > 0 ? (
         <>
           <span className="text-2xl mb-1">{medal}</span>
@@ -68,7 +68,7 @@ function Podium({ top3 }: { top3: RankedRow[] }) {
   )
 
   return (
-    <div className="flex items-end gap-1 mb-6 px-2">
+    <div className="grid grid-cols-3 items-end gap-1 mb-6 px-2">
       <Card players={byRank(2)} medal="🥈" label="2" blockH="h-20" blockColor="bg-gray-400 dark:bg-gray-500" nameColor="dark:text-gray-200" />
       <Card players={byRank(1)} medal="🥇" label="1" blockH="h-28" blockColor="bg-amber-400 dark:bg-amber-500" nameColor="dark:text-white" />
       <Card players={byRank(3)} medal="🥉" label="3" blockH="h-14" blockColor="bg-orange-400 dark:bg-orange-600" nameColor="dark:text-gray-200" />
