@@ -9,7 +9,7 @@ export interface AppUser {
   nameConfirmed?: boolean
 }
 
-export type MatchStatus = 'voting' | 'confirmed' | 'cancelled' | 'completed'
+export type MatchStatus = 'voting' | 'confirmed' | 'completed'
 
 export interface Match {
   id: string

@@ -7,14 +7,12 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 const STATUS_LABEL: Record<string, string> = {
   voting: '신청 중',
   confirmed: '확정',
-  cancelled: '취소',
   completed: '종료',
 }
 
 const STATUS_COLOR: Record<string, string> = {
   voting: 'bg-red-100 text-red-700 dark:bg-amber-900/30 dark:text-amber-300',
   confirmed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  cancelled: 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400',
   completed: 'bg-gray-100 text-gray-600 dark:bg-purple-900/30 dark:text-purple-300',
   mom_voting: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
 }

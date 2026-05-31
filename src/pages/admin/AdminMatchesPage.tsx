@@ -14,7 +14,6 @@ const STATUS_LABELS: Record<MatchStatus, string> = {
   voting: '투표중',
   confirmed: '확정',
   completed: '완료',
-  cancelled: '취소',
 }
 
 const STATUS_ACTIONS: Partial<Record<MatchStatus, { next: MatchStatus; label: string; className: string }[]>> = {

@@ -26,7 +26,7 @@ export default function HomePage() {
     Promise.all(futureMths.map(({ year, month }) => getMatchesByMonth(year, month))).then((results) => {
       const upcoming = results
         .flat()
-        .filter((m) => m.status !== 'cancelled' && m.status !== 'completed' && m.date >= now)
+        .filter((m) => m.status !== 'completed' && m.date >= now)
         .sort((a, b) => a.date.getTime() - b.date.getTime())
         .slice(0, 5)
       setUpcomingMatches(upcoming)
