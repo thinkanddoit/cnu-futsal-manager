@@ -81,3 +81,22 @@ export async function linkGuestAttendances(memberUid: string, guestUid: string):
   const snap = await getDocs(q)
   await Promise.all(snap.docs.map((d) => updateDoc(d.ref, { userId: memberUid })))
 }
+
+// 게스트→정회원 전환 후 문서 ID와 userId가 불일치할 수 있어 쿼리로 실제 문서를 찾아 업데이트
+export async function updateAttendanceStatus(
+  matchId: string,
+  userId: string,
+  status: AttendanceStatus
+): Promise<void> {
+  const q = query(
+    collection(db, 'attendances'),
+    where('matchId', '==', matchId),
+    where('userId', '==', userId)
+  )
+  const snap = await getDocs(q)
+  if (!snap.empty) {
+    await Promise.all(snap.docs.map((d) => updateDoc(d.ref, { status, updatedAt: Timestamp.now() })))
+  } else {
+    await setAttendance(matchId, userId, status)
+  }
+}
