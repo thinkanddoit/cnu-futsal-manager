@@ -3,6 +3,7 @@ import {
   setDoc,
   getDocs,
   updateDoc,
+  deleteDoc,
   collection,
   query,
   where,
@@ -51,7 +52,16 @@ export function subscribeToMatchAttendances(
 ): () => void {
   const q = query(collection(db, 'attendances'), where('matchId', '==', matchId))
   return onSnapshot(q, (snap) => {
-    onData(snap.docs.map((d) => docToAttendance(d.data())))
+    const all = snap.docs.map((d) => docToAttendance(d.data()))
+    // userId 중복 제거 (게스트→정회원 전환 시 중복 문서 방어)
+    const seen = new Set<string>()
+    const deduped = all.filter((a) => {
+      if (!a.userId) return true
+      if (seen.has(a.userId)) return false
+      seen.add(a.userId)
+      return true
+    })
+    onData(deduped)
   })
 }
 
@@ -83,6 +93,7 @@ export async function linkGuestAttendances(memberUid: string, guestUid: string):
 }
 
 // 게스트→정회원 전환 후 문서 ID와 userId가 불일치할 수 있어 쿼리로 실제 문서를 찾아 업데이트
+// 중복 문서가 있으면 첫 번째만 업데이트하고 나머지는 삭제
 export async function updateAttendanceStatus(
   matchId: string,
   userId: string,
@@ -95,7 +106,11 @@ export async function updateAttendanceStatus(
   )
   const snap = await getDocs(q)
   if (!snap.empty) {
-    await Promise.all(snap.docs.map((d) => updateDoc(d.ref, { status, updatedAt: Timestamp.now() })))
+    const [primary, ...duplicates] = snap.docs
+    await updateDoc(primary.ref, { status, updatedAt: Timestamp.now() })
+    if (duplicates.length > 0) {
+      await Promise.all(duplicates.map((d) => deleteDoc(d.ref)))
+    }
   } else {
     await setAttendance(matchId, userId, status)
   }
