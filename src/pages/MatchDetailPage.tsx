@@ -161,7 +161,7 @@ export default function MatchDetailPage() {
 
     const myName = appUser ? (memberMap[appUser.uid]?.name ?? appUser.uid) : ''
     const changeLine = changedTo && myName
-      ? `\n🔔 ${myName}님이 ${changedTo === 'attending' ? '참석으로 변경' : '불참으로 변경'}했습니다.`
+      ? `\n\n🔔 ${myName}님이 ${changedTo === 'attending' ? '참석으로 변경' : '불참으로 변경'}했습니다.`
       : ''
 
     window.Kakao.Share.sendDefault({
