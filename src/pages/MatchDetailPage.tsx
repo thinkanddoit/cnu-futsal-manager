@@ -45,21 +45,24 @@ export default function MatchDetailPage() {
   useEffect(() => {
     if (!id) return
     getDoc(doc(db, 'matches', id)).then(async (snap) => {
-      if (snap.exists()) {
-        const m = docToMatch(snap.id, snap.data())
-        setMatch(m)
-        // mvpResults 없고 집계 완료된 경기면 votes에서 직접 계산
-        if (m.voteTallied) {
-          const result = await getMomResult(id)
-          if (result) {
-            setMomResult(result)
-          } else {
-            const fromVotes = await computeMomResultFromVotes(id)
-            if (fromVotes) setMomResult({ matchId: id, ...fromVotes, createdAt: new Date() })
-          }
+      if (!snap.exists()) {
+        alert('삭제된 경기입니다.')
+        navigate('/', { replace: true })
+        return
+      }
+      const m = docToMatch(snap.id, snap.data())
+      setMatch(m)
+      // mvpResults 없고 집계 완료된 경기면 votes에서 직접 계산
+      if (m.voteTallied) {
+        const result = await getMomResult(id)
+        if (result) {
+          setMomResult(result)
         } else {
-          getMomResult(id).then(setMomResult)
+          const fromVotes = await computeMomResultFromVotes(id)
+          if (fromVotes) setMomResult({ matchId: id, ...fromVotes, createdAt: new Date() })
         }
+      } else {
+        getMomResult(id).then(setMomResult)
       }
       setLoading(false)
     })
@@ -78,7 +81,7 @@ export default function MatchDetailPage() {
   }, [id, appUser])
 
   if (loading) return <LoadingSpinner />
-  if (!match) return <p className="text-center p-8">경기를 찾을 수 없습니다.</p>
+  if (!match) return null
 
   const attending = attendances.filter((a) => a.status === 'attending')
   const myAttendance = attendances.find((a) => a.userId === appUser?.uid)
