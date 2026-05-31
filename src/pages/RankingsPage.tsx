@@ -18,6 +18,44 @@ function JerseyIcon() {
   )
 }
 
+function Podium({ top3 }: { top3: RankedRow[] }) {
+  const byRank = (rank: number) => top3.filter((r) => r.rank === rank)
+
+  const Card = ({ players, medal, label, blockH, blockColor, nameColor }: {
+    players: RankedRow[]
+    medal: string
+    label: string
+    blockH: string
+    blockColor: string
+    nameColor: string
+  }) => (
+    <div className="flex flex-col items-center flex-1">
+      {players.length > 0 ? (
+        <>
+          <span className="text-2xl mb-1">{medal}</span>
+          <p className={`text-sm font-bold mb-0.5 text-center leading-tight ${nameColor}`}>
+            {players.map((p) => p.name).join(' · ')}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{players[0].totalPoints}점</p>
+        </>
+      ) : (
+        <div className="mb-2" style={{ height: 64 }} />
+      )}
+      <div className={`w-full ${blockH} ${blockColor} rounded-t-lg flex items-center justify-center`}>
+        <span className="text-white font-black text-xl opacity-80">{label}</span>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="flex items-end gap-1 mb-6 px-2">
+      <Card players={byRank(2)} medal="🥈" label="2" blockH="h-20" blockColor="bg-gray-400 dark:bg-gray-500" nameColor="dark:text-gray-200" />
+      <Card players={byRank(1)} medal="🥇" label="1" blockH="h-28" blockColor="bg-amber-400 dark:bg-amber-500" nameColor="dark:text-white" />
+      <Card players={byRank(3)} medal="🥉" label="3" blockH="h-14" blockColor="bg-orange-400 dark:bg-orange-600" nameColor="dark:text-gray-200" />
+    </div>
+  )
+}
+
 export default function RankingsPage() {
   const [rows, setRows] = useState<RankedRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,17 +91,22 @@ export default function RankingsPage() {
 
   if (loading) return <LoadingSpinner />
 
+  const top3 = rows.filter((r) => r.rank <= 3)
+
   return (
     <div>
       <h1 className="text-xl font-bold mb-4 dark:text-white">랭킹</h1>
 
-      <div className="bg-yellow-50 dark:bg-amber-900/20 border border-yellow-200 dark:border-amber-700/50 rounded-lg p-3 mb-4 text-sm">
+      <div className="bg-yellow-50 dark:bg-amber-900/20 border border-yellow-200 dark:border-amber-700/50 rounded-lg p-3 mb-6 text-sm">
         <p className="font-semibold text-yellow-800 dark:text-amber-300 mb-1">MOM (Man of the Match) 제도 안내</p>
         <ul className="text-yellow-700 dark:text-amber-400/80 space-y-0.5">
           <li>• 점수: 1등 3점 / 2등 2점 / 3등 1점 / 참석자 0.5점</li>
           <li>• 투표 대상: 경기 참석자만 투표 가능</li>
         </ul>
       </div>
+
+      {top3.length > 0 && <Podium top3={top3} />}
+
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
@@ -77,7 +120,7 @@ export default function RankingsPage() {
         <tbody>
           {rows.map((r) => (
             <tr key={r.userId} className="border-b dark:border-gray-700 last:border-0">
-              <td className="py-3 font-bold text-gray-400 dark:text-gray-500">{r.rank}</td>
+              <td className={`py-3 font-bold ${r.rank <= 3 ? 'text-gray-300 dark:text-gray-600' : 'text-gray-400 dark:text-gray-500'}`}>{r.rank}</td>
               <td className="py-3">
                 <div className="flex items-center gap-2">
                   <JerseyIcon />
