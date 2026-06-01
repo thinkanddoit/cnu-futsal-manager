@@ -17,6 +17,7 @@ export default function HomePage() {
   const [topStats, setTopStats] = useState<(UserStats & { name: string })[]>([])
   const [loadingMatches, setLoadingMatches] = useState(true)
   const [loadingStats, setLoadingStats] = useState(true)
+  const [attendedMatchIds, setAttendedMatchIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const now = new Date()
@@ -50,7 +51,7 @@ export default function HomePage() {
   }, [])
 
   useEffect(() => {
-    if (!appUser) { setVotingMatches([]); return }
+    if (!appUser) { setVotingMatches([]); setAttendedMatchIds(new Set()); return }
 
     const now = new Date()
     const pastMths: { year: number; month: number }[] = []
@@ -67,6 +68,7 @@ export default function HomePage() {
       const attendedIds = new Set(
         attendances.filter((a) => a.status === 'attending').map((a) => a.matchId)
       )
+      setAttendedMatchIds(attendedIds)
       const active = allMatches.filter(
         (m) =>
           m.status === 'completed' &&
@@ -140,11 +142,22 @@ export default function HomePage() {
           <ul className="space-y-2">
             {upcomingMatches.map((m) => (
               <li key={m.id}>
-                <Link to={`/match/${m.id}`} className="block bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none dark:ring-1 dark:ring-gray-700 p-3 hover:shadow-md">
-                  <p className="font-medium dark:text-white">
-                    {m.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{m.venue}</p>
+                <Link to={`/match/${m.id}`} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none dark:ring-1 dark:ring-gray-700 p-3 hover:shadow-md">
+                  <div>
+                    <p className="font-medium dark:text-white">
+                      {m.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{m.venue}</p>
+                  </div>
+                  {appUser && (
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
+                      attendedMatchIds.has(m.id)
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                    }`}>
+                      {attendedMatchIds.has(m.id) ? '참석' : '미신청'}
+                    </span>
+                  )}
                 </Link>
               </li>
             ))}
