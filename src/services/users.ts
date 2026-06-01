@@ -4,7 +4,6 @@ import {
   getDocs,
   updateDoc,
   addDoc,
-  deleteDoc,
   query,
   where,
   Timestamp,
@@ -12,7 +11,6 @@ import {
 import { db } from '../firebase'
 import { auth } from '../firebase'
 import { AppUser, UserRole } from '../types'
-import { linkGuestAttendances } from './attendances'
 
 function docToUser(id: string, data: Record<string, any>): AppUser {
   return {
@@ -61,15 +59,6 @@ export async function getOrCreateGuestUser(name: string): Promise<string> {
   return ref.id
 }
 
-export async function approveUser(uid: string, name: string): Promise<void> {
-  await updateDoc(doc(db, 'users', uid), { role: 'member' })
-  const q = query(collection(db, 'users'), where('name', '==', name), where('role', '==', 'guest'))
-  const snap = await getDocs(q)
-  await Promise.all(snap.docs.map(async (guestDoc) => {
-    await linkGuestAttendances(uid, guestDoc.id)
-    await deleteDoc(guestDoc.ref)
-  }))
-}
 
 export async function setUserRole(uid: string, role: UserRole): Promise<void> {
   await updateDoc(doc(db, 'users', uid), { role })

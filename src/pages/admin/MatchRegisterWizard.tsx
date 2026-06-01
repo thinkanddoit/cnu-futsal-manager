@@ -4,7 +4,7 @@ import { db } from '../../firebase'
 import { useAuth } from '../../hooks/useAuth'
 import { getAllUsers, getOrCreateGuestUser } from '../../services/users'
 import { createMatch, getAllMatches } from '../../services/matches'
-import { saveMatchAttendances, getAttendancesForMatch, updateAttendanceStatus } from '../../services/attendances'
+import { saveMatchAttendances, getAttendancesForMatch, setAttendance } from '../../services/attendances'
 import { saveMomResult, getMomResult } from '../../services/momResults'
 import { isMatchInPast } from '../../utils/matchTime'
 import { AppUser, Match } from '../../types'
@@ -192,8 +192,8 @@ export default function MatchRegisterWizard({ onClose, onComplete, editMatch }: 
       const toAdd = [...finalAttendingUids].filter((uid) => !originalAttendingUids.has(uid))
       const toRemove = [...originalAttendingUids].filter((uid) => !finalAttendingUids.has(uid))
       await Promise.all([
-        ...toAdd.map((uid) => updateAttendanceStatus(editMatch.id, uid, 'attending')),
-        ...toRemove.map((uid) => updateAttendanceStatus(editMatch.id, uid, 'absent')),
+        ...toAdd.map((uid) => setAttendance(editMatch.id, uid, 'attending')),
+        ...toRemove.map((uid) => setAttendance(editMatch.id, uid, 'absent')),
       ])
 
       if (isPast && (mom.first.length > 0 || mom.second.length > 0)) {

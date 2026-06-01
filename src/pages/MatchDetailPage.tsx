@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../hooks/useAuth'
-import { subscribeToMatchAttendances, updateAttendanceStatus } from '../services/attendances'
+import { subscribeToMatchAttendances, setAttendance } from '../services/attendances'
 import { castMomVote, getMyVote, getVotesForMatch, computeMomResultFromVotes } from '../services/votes'
 import { getMomResult } from '../services/momResults'
 import { serverTally } from '../services/stats'
@@ -110,7 +110,7 @@ export default function MatchDetailPage() {
   async function handleAttendanceToggle() {
     if (!appUser || !id) return
     const next = myAttendance?.status === 'attending' ? 'absent' : 'attending'
-    await updateAttendanceStatus(id, appUser.uid, next)
+    await setAttendance(id, appUser.uid, next)
     setPendingStatusChange(next)
     setShowShareReminder(true)
   }
